@@ -1,7 +1,3 @@
-function test(x::Int64)
-    return x^2
+for i in 1:3, j in "hello"
+println(i, " ", j)
 end
-
-z = test([1:4])
-
-print(z)
