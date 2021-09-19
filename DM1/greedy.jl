@@ -29,7 +29,7 @@ function greedy_construction(cost,matrix)
         sizehint!(evaluations, dim_matrix[2])
 #=
 pour chaque sous ensemble restant, on prend celui qui maximise
-cost/card(sous_ensemble) et qui est "disjoint" de la solution qu'on est en train de construire
+cost/card(sous_ensemble)
 =#
         for compteur in 1:length(sous_ensembles_restants)
             evaluations = push!(evaluations, cost[sous_ensembles_restants[compteur]]/ sum(matrix[sous_ensembles_restants[compteur],:]))
@@ -39,7 +39,7 @@ cost/card(sous_ensemble) et qui est "disjoint" de la solution qu'on est en train
 
         x_0[sous_ensembles_restants[indice_choisi]] = 1
 
-#le sous ensemble choisi et son coût associé sont supprimés
+#le sous ensemble choisi est supprimé
         sous_ensembles_restants = deleteat!(sous_ensembles_restants,indice_choisi)
 
 #on identifie et supprime les sous_ensembles qui ne pourront plus être pris
