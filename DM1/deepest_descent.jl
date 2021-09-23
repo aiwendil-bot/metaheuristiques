@@ -9,8 +9,15 @@ cd("$(homedir())/github/metaheuristiques")
 fname = "DM1/Data/pb_100rnd0100.dat"
 cost, matrix = loadSPP(fname)
 
+
+
+
+
 function kp_exchange(k,p,x)
 
+
+
+    return voisinage
 end
 
 function deepest_descent(initial_solution)
