@@ -6,52 +6,47 @@ k = 0
 p = 0
 max = dot(cost, x)
 Pour i allant de 1 à taille(x0) faire
-    Si x[i] == 1 et k < 2 alors
-        x[i] = 0
-    Sinon Si x[i] == 0 et p < 1 alors
-        x[i] = 1
-    fin Si
+    k, p, x[i] = exchange(k, p, x[i])
     Pour j allant de 2 à taille(x0) faire
-        Si x[j] == 1  et k < 2 alors
-            x[i] = 0
-        Sinon Si x[j] == 0 et p < 1 alors
-            x[j] == 1
-        fin Si
+        k, p, x[j] = exchange(k, p, x[j])
         Pour h allant de 3 à taille(x0) faire
-            Si x[h] == 1 et k < 2 alors
-                x[h] = 0
-                k = k + 1
-            Sinon Si x[h] == 0 et p < 1 alors
-                x[h] = 1
-                p = p + 1
-            fin Si
+            k, p, x[h] = exchange(k, p, x[h])
             eval = dot(cost, x)
             Si eval > max et "verifie contraintes" alors
                 max = eval
             fin Si
-            Si x[h] == 1 alors
-                x[h] = 0
-                p = p - 1
-            Sinon Si x[h] == 0 alors
-                x[h] = 1
-                k = k - 1
-            fin Si
+            k, p, x[h] = inv_exchange(k, p, x[h])
         fin Pour
-        Si x[h] == 1 alors
-            x[h] = 0
-            p = p - 1
-        Sinon Si x[h] == 0 alors
-            x[h] = 1
-            k = k - 1
-        fin Si
+        k, p, x[j] = inv_exchange(k, p, x[j])
     fin Pour
-    Si x[h] == 1 alors
-        x[h] = 0
-        p = p - 1
-    Sinon Si x[h] == 0 alors
-        x[h] = 1
-        k = k - 1
-    fin Si
+    k, p, x[i] = inv_exchange(k, p, x[i])
 fin Pour
 
-Faire une fonction pour les changement de 1 à O et inversement
+Pour vérifier les contraintes :
+- Parcourir la colonne de matrix à l'indice de la variable modifiée
+- Dès que l'on trouve un 1 :
+    - On fait le produit scalaire de la ligne contenant 1 de matrix par x0
+
+Fonction pour les changement de 1 à O et inversement :
+
+exchange(k, p, x) : k, p, x
+Début
+    Si x == 1 et k < 2 alors
+        x = 0
+    Sinon Si x == 0 et p < 1 alors
+        x = 1
+    fin Si
+    retourner k, p, x
+Fin
+
+inv_exchange(k, p, x) : k, p, x
+Début
+    Si x == 1 alors
+        x = 0
+        p = p - 1
+    Sinon Si x == 0 alors
+        x = 1
+        k = k - 1
+    fin Si
+    retourner k, p, x
+Fin
