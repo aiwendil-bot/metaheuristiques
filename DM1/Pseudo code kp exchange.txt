@@ -1,0 +1,57 @@
+Pseudo code kp exchange
+
+Entrée : cost, matrix, x0
+
+k = 0
+p = 0
+max = dot(cost, x)
+Pour i allant de 1 à taille(x0) faire
+    Si x[i] == 1 et k < 2 alors
+        x[i] = 0
+    Sinon Si x[i] == 0 et p < 1 alors
+        x[i] = 1
+    fin Si
+    Pour j allant de 2 à taille(x0) faire
+        Si x[j] == 1  et k < 2 alors
+            x[i] = 0
+        Sinon Si x[j] == 0 et p < 1 alors
+            x[j] == 1
+        fin Si
+        Pour h allant de 3 à taille(x0) faire
+            Si x[h] == 1 et k < 2 alors
+                x[h] = 0
+                k = k + 1
+            Sinon Si x[h] == 0 et p < 1 alors
+                x[h] = 1
+                p = p + 1
+            fin Si
+            eval = dot(cost, x)
+            Si eval > max et "verifie contraintes" alors
+                max = eval
+            fin Si
+            Si x[h] == 1 alors
+                x[h] = 0
+                p = p - 1
+            Sinon Si x[h] == 0 alors
+                x[h] = 1
+                k = k - 1
+            fin Si
+        fin Pour
+        Si x[h] == 1 alors
+            x[h] = 0
+            p = p - 1
+        Sinon Si x[h] == 0 alors
+            x[h] = 1
+            k = k - 1
+        fin Si
+    fin Pour
+    Si x[h] == 1 alors
+        x[h] = 0
+        p = p - 1
+    Sinon Si x[h] == 0 alors
+        x[h] = 1
+        k = k - 1
+    fin Si
+fin Pour
+
+Faire une fonction pour les changement de 1 à O et inversement
