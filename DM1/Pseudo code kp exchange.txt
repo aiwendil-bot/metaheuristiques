@@ -22,10 +22,23 @@ Pour i allant de 1 à taille(x0) faire
     k, p, x[i] = inv_exchange(k, p, x[i])
 fin Pour
 
+Il faut penser à sauvegarder les bonnes solutions !
+
+---------------------------------------------------------------------------------------------------------------
+
 Pour vérifier les contraintes :
 - Parcourir la colonne de matrix à l'indice de la variable modifiée
 - Dès que l'on trouve un 1 :
     - On fait le produit scalaire de la ligne contenant 1 de matrix par x0
+
+# Bonne idée mais pas à implémenter comme ça dans notre code
+Pour i allant de 1 à nbConst
+    Si matrix[i,:] == 1 alors
+        dot(matrix[i,:], x) <= 1
+    fin Si
+fin Pour
+
+---------------------------------------------------------------------------------------------------------------
 
 Fonction pour les changement de 1 à O et inversement :
 

@@ -5,7 +5,7 @@ using LinearAlgebra
 
 cd("$(homedir())/github/metaheuristiques")
 
-fname = "DM1/Data/pb_100rnd0100.dat"
+fname = "DM1/Data/pb_100rnd0300.dat"
 cost, matrix = loadSPP(fname)
 
 #calcul les évaluations retourne l'indice de la meilleure
@@ -76,5 +76,5 @@ function greedy_intelligent(cost, matrix)
 		return x_0
 end
 
-println(greedy_intelligent(cost, matrix))
-@time dot(cost,greedy_intelligent(cost,matrix))
+#println(greedy_intelligent(cost, matrix))
+#@time dot(cost,greedy_intelligent(cost,matrix))
