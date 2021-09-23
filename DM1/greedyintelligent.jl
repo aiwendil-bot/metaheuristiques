@@ -77,4 +77,4 @@ function greedy_intelligent(cost, matrix)
 end
 
 println(greedy_intelligent(cost, matrix))
-dot(cost,greedy_intelligent(cost,matrix))
+@time dot(cost,greedy_intelligent(cost,matrix))
