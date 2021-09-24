@@ -17,10 +17,10 @@ function indice_meilleure_evaluation(cost,matrix,subset_restant,cost_restant)
 		end
 	end
 	max::Float64,indice_max::Int64 = 0, 0
-	for k in 1:size(subset_restant,1)
-		if evaluations[k]*subset_restant[k] > max
-			indice_max = k
-			max = evaluations[k]
+	for i in 1:length(evaluations)
+		if evaluations[i]*subset_restant[i] > max
+			indice_max = i
+			max = evaluations[i]
 		end
 	end
 	return indice_max
@@ -40,35 +40,27 @@ function greedy_construction(cost, matrix)
 		#on calcule les nouvelles évaluations et on prend la meilleure:
 		indice_max::Int64 = indice_meilleure_evaluation(cost,matrix,sous_ensembles_restants,cost_restants)
 
-		#le cas indice_max =0 peut survenir s'il ne reste que des sous_ensembles avec des coûts égaux à 0, auquel cas on les prend
-		if indice_max == 0
-			restant = findall(x->x==1,sous_ensembles_restants)
-			for k in restant
-				x_0[k] = 1
-				sous_ensembles_restants[k] = 0
-			end
-		else
-			x_0[indice_max] = 1
-			sous_ensembles_restants[indice_max] = 0
-			#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
-			for i in 1:length(matrix[:,indice_max])
-				if matrix[i,indice_max] == 1
-					if cost_restants[i] != 0
-						for k in 1:length(matrix[i,:])
-							if matrix[i,k] == 1
-								if k != indice_max && sous_ensembles_restants[k] == 1
-									x_0[k] = 0
-									sous_ensembles_restants[k] = 0
-								end
+		x_0[indice_max] = 1
+		sous_ensembles_restants[indice_max] = 0
+
+		#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
+		for i in 1:length(matrix[:,indice_max])
+			if matrix[i,indice_max] == 1
+				if cost_restants[i] != 0
+					for j in 1:length(matrix[i,:])
+						if matrix[i,j] == 1
+							if j != indice_max && sous_ensembles_restants[j] == 1
+								x_0[j] = 0
+								sous_ensembles_restants[j] = 0
 							end
 						end
-						cost_restants[i] = 0
 					end
+					cost_restants[i] = 0
 				end
 			end
 		end
 	end
-		return x_0,dot(x_0,cost)
+	return x_0,dot(x_0,cost)
 end
 
 # AMELIORATION PAR PLUS PROFONDE DESCENTE (VOISINAGES : 01-EXCHANGE, 11-EXCHANGE, 21-EXCHANGE)
