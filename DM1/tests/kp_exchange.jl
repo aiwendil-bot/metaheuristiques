@@ -4,11 +4,12 @@ include("greedyintelligent.jl")
 
 using LinearAlgebra
 
-fname = "DM1/Data/pb_200rnd0900.dat"
+fname = "DM1/Data/pb_100rnd0200.dat"
 cost, matrix = loadSPP(fname)
 x = greedy_intelligent(cost, matrix)
 z = dot(cost, greedy_intelligent(cost, matrix))
 println(z)
+#=
 function exchange(k, p, x)
     if x == 0  && k < 2
         x = 1
@@ -66,19 +67,17 @@ function kp_exchange21(cost, matrix, x0)
 end
 
 #kp_exchange21(cost, matrix, x)
-
+=#
 
 function kp_exchange01(cost, matrix, x0, z)
     x = copy(x0)
-    z_ameliore = copy(z)
     max::Int64 = copy(z)
     for i in 1:length(x)
         if x0[i] == 0
             x[i] = 1
-            if est_admissible(x,matrix)
-                z_ameliore = z + cost[i]
-                if z_ameliore > max
-                    max = z_ameliore
+            if est_admissible(x,matrix,i)
+                if z + cost[i] > max
+                    max = z + cost[i]
                     x0 = copy(x)
                     println("x")
                 end
@@ -86,15 +85,17 @@ function kp_exchange01(cost, matrix, x0, z)
             x[i] =0
         end
     end
-    return max
+    return x0,max
 end
 
-function est_admissible(x,matrix)
-    for compteur in 1:size(matrix,1)
-        if dot(matrix[compteur,:],x) >1
-            return false
-        end
-    end
+function est_admissible(x,matrix,i)
+    for compteur in 1:length(matrix[:,i])
+		if matrix[compteur,i] == 1
+        	if dot(matrix[compteur,:],x) >1
+            	return false
+        	end
+    	end
+	end
     return true
 end
 
@@ -102,26 +103,68 @@ end
 
 function kp_exchange11(cost, matrix, x0, z)
     x = copy(x0)
-    z_ameliore = copy(z)
     max::Int64 = copy(z)
     for i in 1:length(x)
         if x0[i] == 0
             for j in 1:length(x)
                 if x0[j] == 1
                     x[i],x[j] = 1,0
-                    if est_admissible(x,matrix)
-                        z_ameliore = z + cost[i] - cost[j]
-                        if z_ameliore > max
-                            max = z_ameliore
+                    if est_admissible(x,matrix,i)
+                        if z + cost[i] - cost[j] > max
+                            max = z + cost[i] - cost[j]
                             x0 = copy(x)
-                            println("xx")
+                            print("x")
                         end
                     end
-                    x0[i],x[j] = 0,1
+                    x[i],x[j] = 0,1
                 end
             end
         end
     end
-    return max
+    return x0,max
 end
-@time kp_exchange11(cost, matrix, x,z)
+#@time kp_exchange11(cost, matrix, x,z)
+
+function kp_exchange21(cost, matrix, x0, z)
+    x = copy(x0)
+    max::Int64 = copy(z)
+    for i in 1:length(x)
+        if x0[i] == 0
+			for j in 1:length(x)
+				if x0[j]==1
+					for k in 1:length(x)
+						if x0[k] == 1 && k != j
+							x[i], x[j], x[k] = 1,0,0
+							if est_admissible(x,matrix,i)
+								if z + cost[i] - cost[j] - cost[k] > max
+									max = z + cost[i] - cost[j] - cost[k]
+									x0 = copy(x)
+									print("x")
+								end
+							end
+							x[i],x[j],x[k] = 0,1,1
+						end
+					end
+				end
+			end
+		end
+	end
+    return x0,max
+end
+
+
+function deepest_descent(cost,matrix,x0)
+	z = dot(cost,x0)
+	print("2-1 : ")
+	x,z = kp_exchange21(cost, matrix, x0, z)
+	println("")
+	print("1-1 : ")
+	x,z = kp_exchange11(cost, matrix, x, z)
+	println("")
+	print("0-1 : ")
+	x,z = kp_exchange01(cost, matrix, x, z)
+	println("")
+	return x,z
+end
+
+@time deepest_descent(cost,matrix,x)

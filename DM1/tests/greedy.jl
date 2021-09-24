@@ -31,7 +31,7 @@ function greedy_construction(cost, matrix)
     while length(sous_ensembles_restants) > 0
         evaluations = Float64[]
         sizehint!(evaluations, dim_matrix)
-#= 
+#=
 pour chaque sous ensemble restant, on prend celui qui maximise
 cost/card(sous_ensemble) =#
         for compteur in 1:length(sous_ensembles_restants)
