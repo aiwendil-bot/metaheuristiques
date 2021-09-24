@@ -7,7 +7,7 @@ using LinearAlgebra
 fname = "DM1/Data/pb_100rnd0300.dat"
 cost, matrix = loadSPP(fname)
 x = greedy_intelligent(cost, matrix)
-println(dot(cost, greedy_intelligent(cost, matrix)))
+z = dot(cost, greedy_intelligent(cost, matrix))
 
 function exchange(k, p, x)
     if x == 0  && k < 2
@@ -65,4 +65,39 @@ function kp_exchange21(cost, matrix, x0)
     return better_x, max
 end
 
-kp_exchange21(cost, matrix, x)
+#kp_exchange21(cost, matrix, x)
+
+
+function kp_exchange01(cost, matrix, x0, z)
+    x = copy(x0)
+    z_ameliore = copy(z)
+    max::Int64 = copy(z)
+    for i in 1:length(x)
+        if x0[i] == 0
+            x[i] = 1
+            if est_admissible(x,i,matrix)
+                z_ameliore = z + cost[i]
+                if z_ameliore > max
+                    max = z_ameliore
+                    x0 = copy(x)
+                    println("x")
+                end
+            end
+            x[i] =0
+        end
+    end
+    return max
+end
+
+function est_admissible(x,i,matrix)
+    for compteur in 1:length(matrix[:,i])
+        if matrix[compteur,i] == 1
+            if dot(matrix[compteur,:],x) >1
+                return false
+            end
+        end
+    end
+    return true
+end
+
+kp_exchange01(cost, matrix, x,z)
