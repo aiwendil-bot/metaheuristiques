@@ -50,7 +50,6 @@ function greedy_construction(cost, matrix)
 					for j in 1:length(matrix[i,:])
 						if matrix[i,j] == 1
 							if j != indice_max && sous_ensembles_restants[j] == 1
-								x_0[j] = 0
 								sous_ensembles_restants[j] = 0
 							end
 						end
