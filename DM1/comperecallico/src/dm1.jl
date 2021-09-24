@@ -22,8 +22,8 @@ function main()
 
         zInit = 0 ; zBest = 0 ; t1 =0.0 ; t2 = 0.0
 
-        t1 = @elapsed x, zInit = GreedyConstruction(C, A)
-        t2 = @elapsed xbest, zBest = GreedyImprovement(C, A, x, zInit)
+        t1 = @elapsed x, zInit = greedy_construction(C, A)
+        t2 = @elapsed xbest, zBest = deepest_descent(C, A, x, zInit)
 
 
         # Saving results -------------------------------------------------------

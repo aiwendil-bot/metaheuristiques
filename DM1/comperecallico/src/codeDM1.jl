@@ -6,7 +6,7 @@ using LinearAlgebra
 function indice_meilleure_evaluation(cost,matrix,subset_restant,cost_restant)
 	evaluations = zeros(Float64,length(cost))
 	for i in 1:length(cost)
-		somme = 0
+		somme::Int64 = 0
 		for j in 1:length(matrix[:,i])
 			if matrix[j,i] == 1
 				somme = somme + cost_restant[j]
@@ -16,7 +16,7 @@ function indice_meilleure_evaluation(cost,matrix,subset_restant,cost_restant)
 			evaluations[i] = cost[i] / somme
 		end
 	end
-	max,indice_max = 0, 0
+	max::Float64,indice_max::Int64 = 0, 0
 	for k in 1:size(subset_restant,1)
 		if evaluations[k]*subset_restant[k] > max
 			indice_max = k
@@ -26,6 +26,7 @@ function indice_meilleure_evaluation(cost,matrix,subset_restant,cost_restant)
 	return indice_max
 end
 
+#construction gloutonne d'une solution
 function greedy_construction(cost, matrix)
 
 	dim_matrix = size(matrix)
@@ -37,7 +38,7 @@ function greedy_construction(cost, matrix)
 	while sum(sous_ensembles_restants) > 0 #tant qu'il reste des sous ensembles non vus
 
 		#on calcule les nouvelles évaluations et on prend la meilleure:
-		indice_max = indice_meilleure_evaluation(cost,matrix,sous_ensembles_restants,cost_restants)
+		indice_max::Int64 = indice_meilleure_evaluation(cost,matrix,sous_ensembles_restants,cost_restants)
 
 		#le cas indice_max =0 peut survenir s'il ne reste que des sous_ensembles avec des coûts égaux à 0, auquel cas on les prend
 		if indice_max == 0
@@ -70,12 +71,12 @@ function greedy_construction(cost, matrix)
 		return x_0,dot(x_0,cost)
 end
 
-# AMELIORATION PAR RECHERCHE PROFONDE (VOISINAGES : 01-EXCHANGE, 11-EXCHANGE, 21-EXCHANGE)
+# AMELIORATION PAR PLUS PROFONDE DESCENTE (VOISINAGES : 01-EXCHANGE, 11-EXCHANGE, 21-EXCHANGE)
 
-function est_admissible(x,matrix,i)
+function est_admissible(x,matrix,i)::Bool
     for compteur in 1:length(matrix[:,i])
 		if matrix[compteur,i] == 1
-        	if dot(matrix[compteur,:],x) >1
+        	if dot(matrix[compteur,:],x) > 1
             	return false
         	end
     	end
@@ -93,7 +94,6 @@ function kp_exchange01(cost, matrix, x0, z)
                 if z + cost[i] > max
                     max = z + cost[i]
                     x0 = copy(x)
-                    println("x")
                 end
             end
             x[i] =0
@@ -114,7 +114,6 @@ function kp_exchange11(cost, matrix, x0, z)
                         if z + cost[i] - cost[j] > max
                             max = z + cost[i] - cost[j]
                             x0 = copy(x)
-                            print("x")
                         end
                     end
                     x[i],x[j] = 0,1
@@ -139,7 +138,6 @@ function kp_exchange21(cost, matrix, x0, z)
 								if z + cost[i] - cost[j] - cost[k] > max
 									max = z + cost[i] - cost[j] - cost[k]
 									x0 = copy(x)
-									print("x")
 								end
 							end
 							x[i],x[j],x[k] = 0,1,1
