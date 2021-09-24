@@ -4,11 +4,11 @@ include("greedyintelligent.jl")
 
 using LinearAlgebra
 
-fname = "DM1/Data/pb_100rnd0300.dat"
+fname = "DM1/Data/pb_200rnd0900.dat"
 cost, matrix = loadSPP(fname)
 x = greedy_intelligent(cost, matrix)
 z = dot(cost, greedy_intelligent(cost, matrix))
-
+println(z)
 function exchange(k, p, x)
     if x == 0  && k < 2
         x = 1
@@ -75,7 +75,7 @@ function kp_exchange01(cost, matrix, x0, z)
     for i in 1:length(x)
         if x0[i] == 0
             x[i] = 1
-            if est_admissible(x,i,matrix)
+            if est_admissible(x,matrix)
                 z_ameliore = z + cost[i]
                 if z_ameliore > max
                     max = z_ameliore
@@ -89,15 +89,39 @@ function kp_exchange01(cost, matrix, x0, z)
     return max
 end
 
-function est_admissible(x,i,matrix)
-    for compteur in 1:length(matrix[:,i])
-        if matrix[compteur,i] == 1
-            if dot(matrix[compteur,:],x) >1
-                return false
-            end
+function est_admissible(x,matrix)
+    for compteur in 1:size(matrix,1)
+        if dot(matrix[compteur,:],x) >1
+            return false
         end
     end
     return true
 end
 
-kp_exchange01(cost, matrix, x,z)
+#kp_exchange01(cost, matrix, x,z)
+
+function kp_exchange11(cost, matrix, x0, z)
+    x = copy(x0)
+    z_ameliore = copy(z)
+    max::Int64 = copy(z)
+    for i in 1:length(x)
+        if x0[i] == 0
+            for j in 1:length(x)
+                if x0[j] == 1
+                    x[i],x[j] = 1,0
+                    if est_admissible(x,matrix)
+                        z_ameliore = z + cost[i] - cost[j]
+                        if z_ameliore > max
+                            max = z_ameliore
+                            x0 = copy(x)
+                            println("xx")
+                        end
+                    end
+                    x0[i],x[j] = 0,1
+                end
+            end
+        end
+    end
+    return max
+end
+@time kp_exchange11(cost, matrix, x,z)
