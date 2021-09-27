@@ -92,7 +92,6 @@ function kp_exchange01_simple(cost, matrix, x0, z)
             x[i] = 1
             if est_admissible(x,matrix,i)
                 if z + cost[i] > max
-					println("x")
                     max = z + cost[i]
                     x0 = copy(x)
 					return x0,max
@@ -114,8 +113,6 @@ function kp_exchange11_simple(cost, matrix, x0, z)
                     x[i],x[j] = 1,0
                     if est_admissible(x,matrix,i)
                         if z + cost[i] - cost[j] > max
-							println((i,j))
-							println("xx")
                             max = z + cost[i] - cost[j]
                             x0 = copy(x)
 							return x0,max
@@ -137,12 +134,11 @@ function kp_exchange21_simple(cost, matrix, x0, z)
         if x0[i] == 0
 			for j in 1:length(x)
 				if x0[j]==1
-					for k in 1:length(x)
+					for k in (j+1):(length(x)-1)
 						if x0[k] == 1 && k != j
 							x[i], x[j], x[k] = 1,0,0
 							if est_admissible(x,matrix,i)
 								if z + cost[i] - cost[j] - cost[k] > max
-									println("xxx")
 									max = z + cost[i] - cost[j] - cost[k]
 									x0 = copy(x)
 									return x0,max
@@ -159,7 +155,7 @@ function kp_exchange21_simple(cost, matrix, x0, z)
 end
 
 function simple_descent(cost,matrix,x0,zInit)
-	x,z = kp_exchange21_simple(cost, matrix, [0,1,1,0,0,0,0,0,0], 14)
+	x,z = kp_exchange21_simple(cost, matrix, x0,zInit)
 	x,z = kp_exchange11_simple(cost, matrix, x, z)
 	x,z = kp_exchange01_simple(cost, matrix, x, z)
 	return x,z
@@ -214,7 +210,7 @@ function kp_exchange21_profond(cost, matrix, x0, z)
         if x0[i] == 0
 			for j in 1:length(x)
 				if x0[j]==1
-					for k in 1:length(x)
+					for k in (j+1):(length(x)-1)
 						if x0[k] == 1 && k != j
 							x[i], x[j], x[k] = 1,0,0
 							if est_admissible(x,matrix,i)

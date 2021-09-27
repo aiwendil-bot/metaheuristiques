@@ -3,9 +3,10 @@
    for running your solver
 =#
 
-#include("../../../libSPP/librarySPP.jl")
-include("/home/adrien/github/metaheuristiques/libSPP/librarySPP.jl")
+include("../../../libSPP/librarySPP.jl")
+
 include("codeDM1.jl")
+include("solver.jl")
 
 function main()
     println("Etudiants : COMPERE Nicolas et CALLICO Adrien")
@@ -24,13 +25,17 @@ function main()
         zInit = 0 ; zBest = 0 ; t1 =0.0 ; t2 = 0.0
 
         t1 = @elapsed x, zInit = greedy_construction(C, A)
-        t2 = @elapsed xbest, zBest = deepest_descent(C, A, x, zInit)
+        t2 = @elapsed xbest, zBest = simple_descent(C, A, x, zInit)
 
+        #t1 = @elapsed z = setSPP(C, A)
+        #println(fnames[instance]," : ", t1," ", z)
 
         # Saving results -------------------------------------------------------
         println(io, fnames[instance], " ", zInit, " ", zBest, " ", t1, " ", t2, " ", t1+t2)
     end
     close(io)
+
+
 
 end
 
