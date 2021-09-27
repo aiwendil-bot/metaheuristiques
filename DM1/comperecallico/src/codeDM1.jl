@@ -39,22 +39,31 @@ function greedy_construction(cost, matrix)
 
 		#on calcule les nouvelles évaluations et on prend la meilleure:
 		indice_max::Int64 = indice_meilleure_evaluation(cost,matrix,cost_restants,sous_ensembles_restants)
+		#le cas indice_max = 0 peut survenir s'il ne reste que des coûts restant à 0. auquel cas on les prend tous
+		if indice_max == 0
+			liste_cost_restants = findall(x->x==1,cost_restants)
+			for i in liste_cost_restants
+				x_0[i] = 1
+				cost_restants[i] = 0
+			end
+		else
 
-		x_0[indice_max] = 1
-		cost_restants[indice_max] = 0
+			x_0[indice_max] = 1
+			cost_restants[indice_max] = 0
 
-		#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
-		for i in 1:length(matrix[:,indice_max])
-			if matrix[i,indice_max] == 1
-				if sous_ensembles_restants[i] != 0
-					for j in 1:length(matrix[i,:])
-						if matrix[i,j] == 1
-							if j != indice_max && cost_restants[j] == 1
-								cost_restants[j] = 0
+			#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
+			for i in 1:length(matrix[:,indice_max])
+				if matrix[i,indice_max] == 1
+					if sous_ensembles_restants[i] != 0
+						for j in 1:length(matrix[i,:])
+							if matrix[i,j] == 1
+								if j != indice_max && cost_restants[j] == 1
+									cost_restants[j] = 0
+								end
 							end
 						end
+						sous_ensembles_restants[i] = 0
 					end
-					sous_ensembles_restants[i] = 0
 				end
 			end
 		end
@@ -105,7 +114,8 @@ function kp_exchange11_simple(cost, matrix, x0, z)
                     x[i],x[j] = 1,0
                     if est_admissible(x,matrix,i)
                         if z + cost[i] - cost[j] > max
-							println("x")
+							println((i,j))
+							println("xx")
                             max = z + cost[i] - cost[j]
                             x0 = copy(x)
 							return x0,max
@@ -132,7 +142,7 @@ function kp_exchange21_simple(cost, matrix, x0, z)
 							x[i], x[j], x[k] = 1,0,0
 							if est_admissible(x,matrix,i)
 								if z + cost[i] - cost[j] - cost[k] > max
-									println("x")
+									println("xxx")
 									max = z + cost[i] - cost[j] - cost[k]
 									x0 = copy(x)
 									return x0,max
@@ -149,7 +159,7 @@ function kp_exchange21_simple(cost, matrix, x0, z)
 end
 
 function simple_descent(cost,matrix,x0,zInit)
-	x,z = kp_exchange21_simple(cost, matrix, x0, zInit)
+	x,z = kp_exchange21_simple(cost, matrix, [0,1,1,0,0,0,0,0,0], 14)
 	x,z = kp_exchange11_simple(cost, matrix, x, z)
 	x,z = kp_exchange01_simple(cost, matrix, x, z)
 	return x,z
