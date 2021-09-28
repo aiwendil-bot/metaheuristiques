@@ -3,13 +3,13 @@
 using LinearAlgebra
 
 #calcul les évaluations retourne l'indice de la meilleure
-function indice_meilleure_evaluation(cost,matrix,cost_restant,subset_restant)
+function indice_meilleure_evaluation(cost,matrix,variables_restantes,sous_ensembles_restants)
 	evaluations = zeros(Float64,length(cost))
 	for i in 1:length(cost)
 		somme::Int64 = 0
 		for j in 1:length(matrix[:,i])
 			if matrix[j,i] == 1
-				somme = somme + subset_restant[j]
+				somme = somme + sous_ensembles_restants[j]
 			end
 		end
 		if somme != 0
@@ -17,8 +17,9 @@ function indice_meilleure_evaluation(cost,matrix,cost_restant,subset_restant)
 		end
 	end
 	max::Float64,indice_max::Int64 = 0, 0
+	evaluations = evaluations .* variables_restantes #on ne prend plus en compte que les variables restantes
 	for i in 1:length(evaluations)
-		if evaluations[i]*cost_restant[i] > max
+		if evaluations[i] > max
 			indice_max = i
 			max = evaluations[i]
 		end
@@ -33,23 +34,23 @@ function greedy_construction(cost, matrix)
 	x_0 = zeros(Int,dim_matrix[2]) #on initie la solution avec des 0
 
 	sous_ensembles_restants = ones(Int,dim_matrix[1]) # si 0 alors acheteur vu
-	cost_restants = ones(Int,dim_matrix[2]) # si 0 alors variable utilisé
+	variables_restantes = ones(Int,dim_matrix[2]) # si 0 alors variable utilisé
 
-	while sum(cost_restants) > 0 #tant qu'il reste des variables non utilisées
+	while sum(variables_restantes) > 0 #tant qu'il reste des variables non utilisées
 
 		#on calcule les nouvelles évaluations et on prend la meilleure:
-		indice_max::Int64 = indice_meilleure_evaluation(cost,matrix,cost_restants,sous_ensembles_restants)
+		indice_max::Int64 = indice_meilleure_evaluation(cost,matrix,variables_restantes,sous_ensembles_restants)
 		#le cas indice_max = 0 peut survenir s'il ne reste que des coûts restant à 0. auquel cas on les prend tous
 		if indice_max == 0
-			liste_cost_restants = findall(x->x==1,cost_restants)
-			for i in liste_cost_restants
+			liste_variables_restantes = findall(x->x==1,variables_restantes)
+			for i in liste_variables_restantes
 				x_0[i] = 1
-				cost_restants[i] = 0
+				variables_restantes[i] = 0
 			end
 		else
 
 			x_0[indice_max] = 1
-			cost_restants[indice_max] = 0
+			variables_restantes[indice_max] = 0
 
 			#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
 			for i in 1:length(matrix[:,indice_max])
@@ -57,8 +58,8 @@ function greedy_construction(cost, matrix)
 					if sous_ensembles_restants[i] != 0
 						for j in 1:length(matrix[i,:])
 							if matrix[i,j] == 1
-								if j != indice_max && cost_restants[j] == 1
-									cost_restants[j] = 0
+								if j != indice_max && variables_restantes[j] == 1
+									variables_restantes[j] = 0
 								end
 							end
 						end
