@@ -17,7 +17,7 @@ function path_relinking(cost,matrix, x_s, x_t, i_max)
 	i=1
 	while length(findall_symdiff) > 0 && i < i_max # ?
 		indice_flip = rand(1:length(findall_symdiff))
-		x[findall_symdiff[indice_flip]] = abs(x[findall_symdiff[indice_flip]]-1)
+		x[findall_symdiff[indice_flip]] = x[findall_symdiff[indice_flip]] == 0 ? 1 : 0
 		if est_admissible(x,matrix,findall_symdiff[indice_flip])
 			z = dot(cost,x)
 			if z > z_max #solution "prometteuse" => autre critère ? z > 0.9 * z_max etc
@@ -30,7 +30,7 @@ function path_relinking(cost,matrix, x_s, x_t, i_max)
 				x_max = copy(x)
 			end
 		else
-			x[findall_symdiff[indice_flip]] = abs(x[findall_symdiff[indice_flip]]-1)
+			x[findall_symdiff[indice_flip]] = x[findall_symdiff[indice_flip]] == 0 ? 1 : 0
 		end
 		i=i+1
 	end
