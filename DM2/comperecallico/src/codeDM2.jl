@@ -1,6 +1,7 @@
 include("../../../libSPP/librarySPP.jl")
+include("/Users/nicolascompere/GitHub/metaheuristiques/DM1/comperecallico/src/codeDM1.jl")
 
-target = "../../../Data"
+target = "Data"
 C, A = loadSPP(string(target,"/","pb_500rnd1600.dat"))
 
 # CONSTRUCTION GLOUTONNE
@@ -11,16 +12,33 @@ function path_relinking(cost,matrix, x_s, x_t, i_max)
 	symdiff = xor.(x_s, x_t)
 	findall_symdiff = findall(x->x==1, symdiff) #indices des éléments qui ne sont pas dans l'intersection
 	z_max = max(dot(cost,x_s),dot(cost,x_t))
-	z_ini = z_max
+	z_init = z_max
 	x_max = dot(x_s,cost) > dot(x_t,cost) ? x_s : x_t
 	x = copy(x_s)
 	i=1
+	println(length(findall_symdiff))
 	while length(findall_symdiff) > 0 && i < i_max # ?
-		indice_flip = rand(1:length(findall_symdiff))
-		x[findall_symdiff[indice_flip]] = x[findall_symdiff[indice_flip]] == 0 ? 1 : 0
-		if est_admissible(x,matrix,findall_symdiff[indice_flip])
-			z = dot(cost,x)
-			if z > z_max #solution "prometteuse" => autre critère ? z > 0.9 * z_max etc
+		valeurs_flips = Dict{Int64, Int64}()
+		sizehint!(valeurs_flips, length(findall_symdiff))
+		# indice_flip = rand(1:length(findall_symdiff)) # Passer de random à une évaluation
+		for i in 1:length(findall_symdiff)
+			x[findall_symdiff[i]] = x[findall_symdiff[i]] == 0 ? 1 : 0
+			if est_admissible(cost, matrix, findall_symdiff[i])
+				z = dot(cost,x)
+				valeurs_flips[findall_symdiff[i]] = z
+			end
+			x[findall_symdiff[i]] = x[findall_symdiff[i]] == 0 ? 1 : 0
+		end
+		max_key, max_val = 0, 0
+		for i in keys(valeurs_flips)
+			if valeurs_flips[i] > max_val
+				max_key = i
+				max_val = valeurs_flips[i]
+			end
+		end
+		return max_key, max_val # Reprendre ici
+		#=if est_admissible(x,matrix,findall_symdiff[indice_flip])
+			if z > z_init #solution "prometteuse" => autre critère ? z > 0.9 * z_max etc
 				x, z = deepest_descent(cost,matrix,x,z)
 			end
 			symdiff = xor.(x, x_t)
@@ -30,8 +48,10 @@ function path_relinking(cost,matrix, x_s, x_t, i_max)
 				x_max = copy(x)
 			end
 		else
+			
 			x[findall_symdiff[indice_flip]] = x[findall_symdiff[indice_flip]] == 0 ? 1 : 0
 		end
+		=#
 		i=i+1
 	end
 	if i == i_max
