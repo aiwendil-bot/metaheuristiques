@@ -1,32 +1,104 @@
 include("../../../libSPP/librarySPP.jl")
-include("/Users/nicolascompere/GitHub/metaheuristiques/DM1/comperecallico/src/codeDM1.jl")
+#include("/Users/nicolascompere/GitHub/metaheuristiques/DM1/comperecallico/src/codeDM1.jl")
 
-target = "Data"
-C, A = loadSPP(string(target,"/","pb_500rnd1600.dat"))
-
+target = "../../../Data"
+C, A = loadSPP(string(target,"/","pb_500rnd0500.dat"))
+println("pb_100rnd0300.dat")
 # CONSTRUCTION GLOUTONNE
 
 using LinearAlgebra
+using Random
+using Plots
 
-function path_relinking(cost,matrix, x_s, x_t, i_max)
+function find_min_key(d)
+
+	minkey = undef
+    minval = -1
+
+    for key in keys(d)
+        if d[key] < minval
+            minkey = key
+            minval = d[key]
+        end
+    end
+
+    return minkey,minval
+end
+
+function find_max_key(d)
+	maxkey = undef
+    maxval = -1
+
+    for key in keys(d)
+        if d[key] > maxval
+            maxkey = key
+            maxval = d[key]
+        end
+    end
+
+    return maxkey,maxval
+end
+
+
+
+function grasppr(C,A,α,nb_iter,max_elite)
+	ensemble_z_max = Vector{Int64}(undef,nb_iter)
+	pool_elite = Dict()
+	sizehint!(pool_elite,max_elite)
+	x_max = Vector{Int64}(undef,length(C))
+	z_max::Int64 = 0
+	for i in 1:nb_iter
+		x,z_greedy = greedy_randomized_construction(C,A,α)
+		x,z = simple_descent(C,A,x,z_greedy)
+		if i >= 2
+			keys_elite = collect(keys(pool_elite))
+			keys_elite = shuffle(keys_elite)
+			y = keys_elite[1:rand(1:length(keys_elite))]
+			for elite in y
+				x_t = dot(C,x) > dot(C,elite) ? x : elite
+				x_s = dot(C,x) < dot(C,elite) ? x : elite
+				x_p, z_p = path_relinking(C, A, x_s, x_t)
+				if length(pool_elite) < max_elite
+					pool_elite[x_p] = z_p
+				else
+					minkey,minval = find_min_key(pool_elite)
+					if z_p > minval
+						delete!(pool_elite,minkey)
+						pool_elite[x_p] = z_p
+					end
+				end
+				if z_p > z_max
+					z_max = z_p
+					x_max = x_p
+				end
+			end
+		else
+			pool_elite[x] = z
+		end
+		ensemble_z_max[i] = find_max_key(pool_elite)[2]
+	end
+	return find_max_key(pool_elite),ensemble_z_max
+end
+
+
+function path_relinking(cost,matrix, x_s, x_t)
 	symdiff = xor.(x_s, x_t)
 	findall_symdiff = findall(x->x==1, symdiff) #indices des éléments qui ne sont pas dans l'intersection
 	z_max = max(dot(cost,x_s),dot(cost,x_t))
 	z_init = z_max
 	x_max = dot(x_s,cost) > dot(x_t,cost) ? x_s : x_t
 	x = copy(x_s)
+	z_s = dot(cost,x_s)
 	i=1
-	println(length(findall_symdiff))
-	while length(findall_symdiff) > 0 && i < i_max # ?
+	while length(findall_symdiff) > 0
+
 		valeurs_flips = Dict{Int64, Int64}()
 		sizehint!(valeurs_flips, length(findall_symdiff))
 		# indice_flip = rand(1:length(findall_symdiff)) # Passer de random à une évaluation
 		for i in 1:length(findall_symdiff)
 			x[findall_symdiff[i]] = x[findall_symdiff[i]] == 0 ? 1 : 0
-			if est_admissible(cost, matrix, findall_symdiff[i])
-				z = dot(cost,x)
-				valeurs_flips[findall_symdiff[i]] = z
-			end
+			z = x[findall_symdiff[i]] == 1 ? z_s + cost[findall_symdiff[i]] : z_s - cost[findall_symdiff[i]]
+			valeurs_flips[findall_symdiff[i]] = z
 			x[findall_symdiff[i]] = x[findall_symdiff[i]] == 0 ? 1 : 0
 		end
 		max_key, max_val = 0, 0
@@ -36,26 +108,21 @@ function path_relinking(cost,matrix, x_s, x_t, i_max)
 				max_val = valeurs_flips[i]
 			end
 		end
-		return max_key, max_val # Reprendre ici
-		#=if est_admissible(x,matrix,findall_symdiff[indice_flip])
-			if z > z_init #solution "prometteuse" => autre critère ? z > 0.9 * z_max etc
-				x, z = deepest_descent(cost,matrix,x,z)
+		#if max_key != 0
+		x[max_key] = x[max_key] == 0 ? 1 : 0
+		#end
+		symdiff = xor.(x, x_t)
+		findall_symdiff = findall(x->x==1, symdiff)
+		if isAdmissible(cost,matrix,x)
+			if max_val > z_init #solution "prometteuse" => autre critère ? z > 0.9 * z_max etc
+				x, max_val = deepest_descent(cost,matrix,x,max_val)
 			end
-			symdiff = xor.(x, x_t)
-			findall_symdiff = findall(x->x==1, symdiff)
-			if z > z_max
-				z_max = z
-				x_max = copy(x)
+
+			if max_val > z_max
+				z_max = max_val
+				x_max = x
 			end
-		else
-			
-			x[findall_symdiff[indice_flip]] = x[findall_symdiff[indice_flip]] == 0 ? 1 : 0
 		end
-		=#
-		i=i+1
-	end
-	if i == i_max
-		println("lien non effectué")
 	end
 	return x_max,z_max
 end
@@ -137,11 +204,9 @@ function greedy_randomized_construction(cost, matrix, α)
 	return x_0,dot(x_0,cost)
 end
 
-#println(greedy_randomized_construction(C,A,0.5))
-x_1 =[0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1]
-x_2 = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+#println(greedy_randomized_construction(C,A,0.1))
 
-println(path_relinking(C,A,x_1,x_2,100000))
+#
 # AMELIORATION PAR SIMPLE DESCENTE (VOISINAGES : 01-EXCHANGE, 11-EXCHANGE, 21-EXCHANGE)
 
 function est_admissible(x,matrix,i)::Bool
@@ -306,3 +371,7 @@ function deepest_descent(cost,matrix,x0,zInit)
 	x,z = kp_exchange01_profond(cost, matrix, x, z)
 	return x,z
 end
+x = 1:100
+y=grasppr(C,A,0.7,100,5)
+println(y[1])
+plot(x,y[2])

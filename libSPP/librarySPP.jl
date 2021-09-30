@@ -69,9 +69,7 @@ function isAdmissible(C, A, x)
     end
 
     if findfirst(isequal(false), (vecSat .<= vecUnit)) != nothing
-        println( "Feasible : no")
-        @assert false "no-feasible solution detected"
+        return false
     end
-    println( "Feasible : yes | Σ(x_i) = ", length(var1), " ; z(x) = ", z)
     return true
 end
