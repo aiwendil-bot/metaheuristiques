@@ -85,3 +85,31 @@ function path_relinking(cost,matrix, x_s, x_t)
 	end
 	return x_max,z_max
 end
+
+function path_relinking_random(cost,matrix, x_s, x_t, i_max)
+	symdiff = xor.(x_s, x_t)
+	findall_symdiff = findall(x->x==1, symdiff) #indices des éléments qui ne sont pas dans l'intersection
+	z_max = max(dot(cost,x_s),dot(cost,x_t))
+	z_ini = z_max
+	x_max = dot(x_s,cost) > dot(x_t,cost) ? x_s : x_t
+	x = copy(x_s)
+	while length(findall_symdiff) > 0# ?
+		indice_flip = rand(1:length(findall_symdiff))
+		x[findall_symdiff[indice_flip]] = abs(x[findall_symdiff[indice_flip]]-1)
+		if est_admissible(x,matrix,findall_symdiff[indice_flip])
+			z = dot(cost,x)
+			if z > z_max #solution "prometteuse" => autre critère ? z > 0.9 * z_max etc
+				x, z = deepest_descent(cost,matrix,x,z)
+			end
+			symdiff = xor.(x, x_t)
+			findall_symdiff = findall(x->x==1, symdiff)
+			if z > z_max
+				z_max = z
+				x_max = copy(x)
+			end
+		else
+			x[findall_symdiff[indice_flip]] = abs(x[findall_symdiff[indice_flip]]-1)
+		end
+	end
+	return x_max,z_max
+end
