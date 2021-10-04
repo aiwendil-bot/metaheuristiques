@@ -230,9 +230,10 @@ function deepest_descent(cost,matrix,x0,zInit)
 	x,z = kp_exchange01_profond(cost, matrix, x, z)
 	return x,z
 end
-
+#=
 x = 1:200
 t=@elapsed y=grasppr(C,A,0.6,200,5)
 print(t)
 println(y[1])
 plot(x,y[2])
+=#
