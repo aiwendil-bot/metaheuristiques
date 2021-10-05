@@ -1,7 +1,9 @@
 using LinearAlgebra
 using Random
 using Distributed
+
 include("grasp.jl")
+
 function find_min_key(d)
 
 	minkey = undef
@@ -43,13 +45,13 @@ function utilities(cost,liaisons_contraintes,liaisons_variables,variables_restan
 			end
 		end
 		if somme != 0
-			evaluations[i] = cost[i] / somme
+			evaluation[i] = cost[i] / somme
 		end
 	end
 	evaluation = evaluation[variables_restantes .== 1] #on ne prend plus en compte que les variables restantes
 	indices = findall(variables_restantes .== 1)
 
-	return evaluations,indices
+	return evaluation, indices
 end
 
 #construction gloutonne d'une solution
@@ -57,7 +59,6 @@ end
 
 #println(greedy_randomized_construction(C,A,0.1))
 
-#
 # AMELIORATION PAR SIMPLE DESCENTE (VOISINAGES : 01-EXCHANGE, 11-EXCHANGE, 21-EXCHANGE)
 
 function est_admissible(x,liaisons_contraintes,liaisons_variables,i)::Bool

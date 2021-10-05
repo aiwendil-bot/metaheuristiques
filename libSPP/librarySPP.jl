@@ -9,7 +9,7 @@ function getfname(pathtofolder)
     # vecteur booleen qui marque les noms de fichiers valides
     flag = trues(size(allfiles))
 
-    k=1
+    k = 1
     for f in allfiles
         # traite chaque fichier du repertoire
         if f[1] != '.'
@@ -19,7 +19,7 @@ function getfname(pathtofolder)
             # fichier cache => supprimer
             flag[k] = false
         end
-        k = k+1
+        k = k + 1
     end
 
     # extrait les noms valides et retourne le vecteur correspondant
@@ -32,20 +32,20 @@ end
 
 function loadSPP(fname)
 
-    f=open(fname)
+    f = open(fname)
     # lecture du nbre de contraintes (m) et de variables (n)
-    m, n = parse.(Int, split(readline(f)) )
+    m, n = parse.(Int, split(readline(f)))
     # lecture des n coefficients de la fonction economique et cree le vecteur d'entiers c
-    C = parse.(Int, split(readline(f)) )
+    C = parse.(Int, split(readline(f)))
     # lecture des m contraintes et reconstruction de la matrice binaire A
-    A=zeros(Int, m, n)
-    for i=1:m
+    A = zeros(Int, m, n)
+    for i = 1:m
         # lecture du nombre d'elements non nuls sur la contrainte i (non utilise)
         readline(f)
         # lecture des indices des elements non nuls sur la contrainte i
         for valeur in split(readline(f))
-          j = parse(Int, valeur)
-          A[i,j]=1
+            j = parse(Int, valeur)
+            A[i,j] = 1
         end
     end
     close(f)
@@ -57,8 +57,8 @@ end
 
 function isAdmissible(C, A, x)
 
-    vecSat = zeros(Int, size(A,1))
-    vecUnit = ones(Int,size(A,1))
+    vecSat = zeros(Int, size(A, 1))
+    vecUnit = ones(Int, size(A, 1))
     z::Int64 = 0
     verbose = true
     var1 = findall(isequal(1), x[:])
@@ -68,7 +68,7 @@ function isAdmissible(C, A, x)
         z = z + C[j]
     end
 
-    if findfirst(isequal(false), (vecSat .<= vecUnit)) != nothing
+    if findfirst(isequal(false), (vecSat .<= vecUnit)) !== nothing
         return false
     end
     return true
