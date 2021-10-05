@@ -70,7 +70,6 @@ end
 # Simulation d'une experimentation numérique  --------------------------
 
 #Pkg.add("PyPlot") # Mandatory before the first use of this package
-using PyPlot
 
 function simulation()
     allfinstance      =  ["../../../Data/pb_100rnd0100.dat"]

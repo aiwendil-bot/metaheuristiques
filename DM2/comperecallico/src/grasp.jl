@@ -1,12 +1,12 @@
 include("codeDM2.jl")
 
-function grasp(C,A,α,nb_iter)
+function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
 	compteur::Int64 = 0
 	z_max::Int64 = 0
 	x = zeros(Int,length(C))
 	while compteur < nb_iter
-		x = greedy_randomized_construction(C,A,α)
-		x_amelio = simple_descent(C,A,z,dot(C,x))
+		x = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
+		x_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,z,dot(C,x))
 		z = dot(x_amelio,C)
 		if z > z_max
 			z_max = z
@@ -16,13 +16,14 @@ function grasp(C,A,α,nb_iter)
 	end
 	return x,z_max
 end
-function grasp_v2(C,A,α)
+function grasp_v2(C,liaisons_contraintes,liaisons_variables,α)
 	compteur::Int64 = 0
-	x_cons,z_cons = greedy_randomized_construction(C,A,α)
-	x_amelio,z_amelio = simple_descent(C,A,x_cons,z_cons)
+	x_cons,z_cons = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
+	x_amelio,z_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,x_cons,z_cons)
 	return x_cons,z_cons,x_amelio,z_amelio
 end
-function greedy_randomized_construction(cost, matrix, α)
+
+function greedy_randomized_construction(cost, liaisons_contraintes,liaisons_variables, α)
 
 	dim_matrix = size(matrix)
 	x_0 = zeros(Int,dim_matrix[2]) #on initie la solution avec des 0
@@ -43,20 +44,17 @@ function greedy_randomized_construction(cost, matrix, α)
 		variables_restantes[indice_choisi] = 0
 
 		#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
-		for i in 1:length(matrix[:,indice_choisi])
-			if matrix[i,indice_choisi] == 1
-				if sous_ensembles_restants[i] != 0
-					for j in 1:length(matrix[i,:])
-						if matrix[i,j] == 1
-							if j != indice_choisi && variables_restantes[j] == 1
-								variables_restantes[j] = 0
-							end
-						end
+		for i in liaisons_variables[indice_choisi]
+			if sous_ensembles_restants[i] != 0
+				for j in 1:liaisons_contraintes[i]
+					if j != indice_choisi && variables_restantes[j] == 1
+						variables_restantes[j] = 0
 					end
-					sous_ensembles_restants[i] = 0
 				end
 			end
+			sous_ensembles_restants[i] = 0
 		end
+
 	end
 	return x_0,dot(x_0,cost)
 end
