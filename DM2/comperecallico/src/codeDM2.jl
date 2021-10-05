@@ -1,18 +1,7 @@
-include("../../../libSPP/librarySPP.jl")
-include("pretraitement.jl")
-#include("/Users/nicolascompere/GitHub/metaheuristiques/DM1/comperecallico/src/codeDM1.jl")
-
-target = "../../../Data"
-C, A = loadSPP(string(target,"/","pb_100rnd0100.dat"))
-
-liaisons_contraintes = vect_contraintes(A)
-liaisons_variables = vect_variables(A)
-
-
 using LinearAlgebra
 using Random
 using Distributed
-
+include("grasp.jl")
 function find_min_key(d)
 
 	minkey = undef
@@ -43,8 +32,9 @@ function find_max_key(d)
 end
 
 #calcul les évaluations retourne l'indice de la meilleure
+
 function utilities(cost,liaisons_contraintes,liaisons_variables,variables_restantes,sous_ensembles_restants)
-	evaluations = zeros(Float64,length(cost))
+	evaluation = zeros(Float64,length(cost))
 
 	for i in 1:length(cost)
 		somme::Int64 = 0
@@ -56,7 +46,7 @@ function utilities(cost,liaisons_contraintes,liaisons_variables,variables_restan
 			evaluations[i] = cost[i] / somme
 		end
 	end
-	evaluations = evaluations[variables_restantes .== 1] #on ne prend plus en compte que les variables restantes
+	evaluation = evaluation[variables_restantes .== 1] #on ne prend plus en compte que les variables restantes
 	indices = findall(variables_restantes .== 1)
 
 	return evaluations,indices
@@ -233,9 +223,5 @@ function deepest_descent(cost,liaisons_contraintes,liaisons_variables,x0,zInit)
 	return x,z
 end
 #=
-x = 1:200
-t=@elapsed y=grasppr(C,A,0.6,200,5)
-print(t)
-println(y[1])
-plot(x,y[2])
+
 =#

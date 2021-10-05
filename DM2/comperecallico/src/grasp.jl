@@ -1,5 +1,3 @@
-include("codeDM2.jl")
-
 function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
 	compteur::Int64 = 0
 	z_max::Int64 = 0
@@ -25,14 +23,14 @@ end
 
 function greedy_randomized_construction(cost, liaisons_contraintes,liaisons_variables, α)
 
-	dim_matrix = size(matrix)
+	dim_matrix = (length(liaisons_contraintes),length(liaisons_variables))
 	x_0 = zeros(Int,dim_matrix[2]) #on initie la solution avec des 0
 
 	sous_ensembles_restants = ones(Int,dim_matrix[1]) # si 0 alors acheteur vu
 	variables_restantes = ones(Int,dim_matrix[2]) # si 0 alors variable utilisé
 
 	while sum(variables_restantes) > 0 #tant qu'il reste des variables non utilisées
-		evaluations = utilities(cost,matrix,variables_restantes,sous_ensembles_restants)
+		evaluations = utilities(cost,liaisons_contraintes,liaisons_variables,variables_restantes,sous_ensembles_restants)
 		limit::Float64 = minimum(evaluations[1]) + α*(maximum(evaluations[1])-minimum(evaluations[1]))
 		rcl = findall(evaluations[1] .>= limit-0.000001)
 
