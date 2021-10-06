@@ -1,4 +1,5 @@
 function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
+	ensemble_z_max = Vector{Int64}(undef, nb_iter)
 	compteur::Int64 = 0
 	z_max::Int64 = 0
 	x = zeros(Int,length(C))
@@ -10,8 +11,9 @@ function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
 			x = x_amelio
 		end
 	compteur += 1
+	ensemble_z_max[compteur] = z_max
 	end
-	return x,z_max
+	return x,z_max,ensemble_z_max
 end
 function grasp_v2(C,liaisons_contraintes,liaisons_variables,α)
 	compteur::Int64 = 0

@@ -2,6 +2,7 @@ include("codeDM2.jl")
 include("grasp.jl")
 
 function reactive_grasp(cost, liaisons_contraintes, liaisons_variables, vector_α, nb_iter, N_α)
+	ensemble_z_max = Vector{Int64}(undef, nb_iter)
 	nb_α = length(vector_α)
 	probas_α = 1 / nb_α .* ones(Float64, nb_α)
 	probas_α_cumulees = zeros(Float64, nb_α)
@@ -35,6 +36,7 @@ function reactive_grasp(cost, liaisons_contraintes, liaisons_variables, vector_�
 				q[k] = (z_average[k] - z_worst) / (z_best - z_worst)
 			end
 			probas_α = q / sum(q)
+		ensemble_z_max[i] = z_best
 	end
-	return x_max, z_best
+	return x_max, z_best, probas_α,ensemble_z_max
 end

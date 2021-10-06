@@ -1,11 +1,12 @@
 # --------------------------------------------------------------------------- #
 # Perform a numerical experiment (with a fake version of GRASP-SPP)
-include("grasp.jl")
-include("path_relinking.jl")
-include("reactive_grasp.jl")
-include("../../../libSPP/librarySPP.jl")
+#=@everywhere include("grasp.jl")
+@everywhere include("path_relinking.jl")
+@everywhere include("reactive_grasp.jl")
+@everywhere include("../../../libSPP/librarySPP.jl")
+=#
 using PyPlot
-using Plots
+pygui(true)
 function graspSPP(fname, alpha, nbIterationGrasp)
 
     cost, matrix = loadSPP(fname)
@@ -14,8 +15,11 @@ function graspSPP(fname, alpha, nbIterationGrasp)
     zbest = zeros(Int64,nbIterationGrasp)
     zbetter=0
 
+    liaisons_contraintes = vect_contraintes(matrix)
+    liaisons_variables = vect_variables(matrix)
+
     for i=1:nbIterationGrasp
-        zconstruction[i], zamelioration[i] = grasp_v2(cost,matrix,alpha)[2], grasp_v2(cost,matrix,alpha)[4]# # livrable du DM2
+        zconstruction[i], zamelioration[i] = grasp_v2(cost,liaisons_contraintes,liaisons_variables,alpha)[2], grasp_v2(cost,liaisons_contraintes,liaisons_variables,alpha)[4]# # livrable du DM2
         zbetter = max(zbetter, zamelioration[i])
         zbest[i] = zbetter
     end
@@ -70,11 +74,12 @@ end
 # Simulation d'une experimentation numérique  --------------------------
 
 #Pkg.add("PyPlot") # Mandatory before the first use of this package
+using PyPlot
 
 function simulation()
     allfinstance      =  ["../../../Data/pb_100rnd0100.dat"]
     nbInstances       =  length(allfinstance)
-    nbRunGrasp        =  2   # nombre de fois que la resolution GRASP est repetee
+    nbRunGrasp        =  30   # nombre de fois que la resolution GRASP est repetee
     nbIterationGrasp  =  200  # nombre d'iteration que compte une resolution GRASP
     nbDivisionRun     =  10   # nombre de division que compte une resolution GRASP
 
@@ -136,10 +141,32 @@ function simulation()
 
     #Pkg.add("PyPlot") # Mandatory before the first use of this package
     println(" ");println("  Graphiques de synthese")
-    #using PyPlot
+#    using PyPlot
     instancenb = 1
     plotRunGrasp(allfinstance[instancenb], zinit, zls, zbest)
     plotAnalyseGrasp(allfinstance[instancenb], x, zmoy[instancenb,:], zmin[instancenb,:], zmax[instancenb,:] )
     plotCPUt(allfinstance, tmoy)
 end
-simulation()
+
+function reactive_experiment(cost, liaisons_contraintes, liaisons_variables, vector_α, nb_iter, N_α)
+    x = reactive_grasp(cost, liaisons_contraintes, liaisons_variables, vector_α, nb_iter, N_α)
+    figure("test",figsize = (8, 8))
+    title("Probabilité de chaque α pour $nb_iter itérations | refresh tous les $N_α")
+    pie(x[3], labels = ["α ="*string(i) for i in vector_α], normalize = true, autopct="%1.1f%%")
+end
+
+function comparaisons(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_elite)
+    w = reactive_grasp(C, liaisons_contraintes, liaisons_variables, [0.2,0.4,0.6,0.8,0.9], nb_iter, 20)
+    y= grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
+    z = grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_elite)
+    x = [i for i in 1:nb_iter]
+    figure("comparaisons",figsize = (8, 8))
+    title("Comparaison entre GRASP,Reactive-GRASP & Path-relinking | α = $α")
+    xlabel("nombre d'itérations")
+    ylabel("z_max")
+    plot(x,w[4],linestyle="--",marker=".",color = "green" , label="Reactive-GRASP" )
+    plot(x,y[3],linestyle="--",marker=".",color = "red" , label="GRASP" )
+    plot(x,z[2],linestyle="--",marker=".",color = "blue" , label="Avec Path-Relinking & max_elite = $max_elite" )
+
+    legend()
+end
