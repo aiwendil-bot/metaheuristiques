@@ -3,14 +3,13 @@ function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
 	z_max::Int64 = 0
 	x = zeros(Int,length(C))
 	while compteur < nb_iter
-		x = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
-		x_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,z,dot(C,x))
-		z = dot(x_amelio,C)
-		if z > z_max
-			z_max = z
+		x, z = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
+		x_amelio, z_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,x,z)
+		if z_amelio > z_max
+			z_max = z_amelio
 			x = x_amelio
 		end
-	i = i + 1
+	compteur += 1
 	end
 	return x,z_max
 end
@@ -44,7 +43,7 @@ function greedy_randomized_construction(cost, liaisons_contraintes,liaisons_vari
 		#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
 		for i in liaisons_variables[indice_choisi]
 			if sous_ensembles_restants[i] != 0
-				for j in 1:liaisons_contraintes[i]
+				for j in liaisons_contraintes[i]
 					if j != indice_choisi && variables_restantes[j] == 1
 						variables_restantes[j] = 0
 					end

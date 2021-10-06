@@ -42,7 +42,6 @@ function utilities(cost,liaisons_contraintes,liaisons_variables,variables_restan
 		somme::Int64 = 0
 		for j in 1:length(liaisons_variables[i])
 				somme = somme + sous_ensembles_restants[liaisons_variables[i][j]]
-			end
 		end
 		if somme != 0
 			evaluation[i] = cost[i] / somme
@@ -63,10 +62,8 @@ end
 
 function est_admissible(x,liaisons_contraintes,liaisons_variables,i)::Bool
     for compteur in 1:length(liaisons_variables[i])
-		if matrix[compteur,i] == 1
-        	if sum(x[liaisons_contraintes[liaisons_variables[i][compteur]]]) > 1
-            	return false
-        	end
+        if sum(x[liaisons_contraintes[liaisons_variables[i][compteur]]]) > 1
+        	return false
     	end
 	end
     return true
