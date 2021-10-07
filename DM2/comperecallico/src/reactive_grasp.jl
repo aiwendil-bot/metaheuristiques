@@ -38,5 +38,5 @@ function reactive_grasp(cost, liaisons_contraintes, liaisons_variables, vector_�
 			probas_α = q / sum(q)
 		ensemble_z_max[i] = z_best
 	end
-	return x_max, z_best, probas_α,ensemble_z_max
+	return x_max, z_best, probas_α, ensemble_z_max
 end
