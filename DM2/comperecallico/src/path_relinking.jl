@@ -1,16 +1,21 @@
 include("codeDM2.jl")
 include("grasp.jl")
 
-function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_elite)
+function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_elite,target)
 	ensemble_z_max = Vector{Int64}(undef, nb_iter)
 	pool_elite = Dict()
 	sizehint!(pool_elite, max_elite)
 	x_max = Vector{Int64}(undef, length(C))
 	z_max::Int64 = 0
+	t1::Float64,t2::Float64,t::Float64,check::Bool = 0.0,0.0,0.0,false
+
 	for i in 1:nb_iter
+
+
 		x, z_greedy = greedy_randomized_construction(C, liaisons_contraintes, liaisons_variables, α)
 		x, z = simple_descent(C, liaisons_contraintes, liaisons_variables, x, z_greedy)
 		if i >= 2
+			t1 = time()
 			keys_elite = collect(keys(pool_elite))
 			keys_elite = shuffle(keys_elite)
 			y = keys_elite[1:rand(1:length(keys_elite))]
@@ -18,6 +23,11 @@ function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_e
 				x_t = dot(C, x) > dot(C, elite) ? x : elite
 				x_s = dot(C, x) < dot(C, elite) ? x : elite
 				x_p, z_p = path_relinking(C, liaisons_contraintes, liaisons_variables, x_s, x_t)
+				if z_p >= target && check == false
+					t2=time()
+					t = t2 - t1
+					check = true
+				end
 				if length(pool_elite) < max_elite
 					pool_elite[x_p] = z_p
 				else
@@ -35,9 +45,10 @@ function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_e
 		else
 			pool_elite[x] = z
 		end
+
 		ensemble_z_max[i] = find_max_key(pool_elite)[2]
 	end
-	return find_max_key(pool_elite), ensemble_z_max
+	return find_max_key(pool_elite), ensemble_z_max,t
 end
 
 function path_relinking(cost, liaisons_contraintes, liaisons_variables, x_s, x_t)
