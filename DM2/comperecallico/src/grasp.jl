@@ -5,7 +5,7 @@ function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter,target=0)
 	x = zeros(Int,length(C))
 	t1::Float64,t2::Float64,t::Float64,check::Bool = 0.0,0.0,0.0,false
 	t1=time()
-	while compteur < nb_iter
+	while compteur < nb_iter # time() - t1 < tlimit
 
 		x, z = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
 		x_amelio, z_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,x,z)

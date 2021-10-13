@@ -3,14 +3,12 @@
 using LinearAlgebra
 
 #calcul les évaluations retourne l'indice de la meilleure
-function indice_meilleure_evaluation(cost,matrix,variables_restantes,sous_ensembles_restants)
+function indice_meilleure_evaluation(cost,liaisons_contraintes,liaisons_variables,variables_restantes,sous_ensembles_restants)
 	evaluations = zeros(Float64,length(cost))
 	for i in 1:length(cost)
 		somme::Int64 = 0
-		for j in 1:length(matrix[:,i])
-			if matrix[j,i] == 1
-				somme = somme + sous_ensembles_restants[j]
-			end
+		for j in 1:length(liaisons_variables[i])
+			somme += sous_ensembles_restants[liaisons_variables[i][j]]
 		end
 		if somme != 0
 			evaluations[i] = cost[i] / somme
@@ -28,18 +26,17 @@ function indice_meilleure_evaluation(cost,matrix,variables_restantes,sous_ensemb
 end
 
 #construction gloutonne d'une solution
-function greedy_construction(cost, matrix)
+function greedy_construction(cost, liaisons_contraintes,liaisons_variables)
 
-	dim_matrix = size(matrix)
-	x_0 = zeros(Int,dim_matrix[2]) #on initie la solution avec des 0
+	x_0 = zeros(Int,length(cost)) #on initie la solution avec des 0
 
-	sous_ensembles_restants = ones(Int,dim_matrix[1]) # si 0 alors acheteur vu
-	variables_restantes = ones(Int,dim_matrix[2]) # si 0 alors variable utilisé
+	sous_ensembles_restants = ones(Int,length(liaisons_contraintes)) # si 0 alors acheteur vu
+	variables_restantes = ones(Int,length(liaisons_variables)) # si 0 alors variable utilisé
 
 	while sum(variables_restantes) > 0 #tant qu'il reste des variables non utilisées
 
 		#on calcule les nouvelles évaluations et on prend la meilleure:
-		indice_max::Int64 = indice_meilleure_evaluation(cost,matrix,variables_restantes,sous_ensembles_restants)
+		indice_max::Int64 = indice_meilleure_evaluation(cost,liaisons_contraintes,liaisons_variables,variables_restantes,sous_ensembles_restants)
 		#le cas indice_max = 0 peut survenir s'il ne reste que des coûts restant à 0. auquel cas on les prend tous
 		if indice_max == 0
 			liste_variables_restantes = findall(x->x==1,variables_restantes)
@@ -53,19 +50,15 @@ function greedy_construction(cost, matrix)
 			variables_restantes[indice_max] = 0
 
 			#dans cette boucle, on exclut les sous_ensembles qui sont en conflit avec la solution mise à jour
-			for i in 1:length(matrix[:,indice_max])
-				if matrix[i,indice_max] == 1
-					if sous_ensembles_restants[i] != 0
-						for j in 1:length(matrix[i,:])
-							if matrix[i,j] == 1
-								if j != indice_max && variables_restantes[j] == 1
-									variables_restantes[j] = 0
-								end
-							end
+			for i in liaisons_variables[indice_max]
+				if sous_ensembles_restants[i] != 0
+					for j in liaisons_contraintes[i]
+						if j != indice_max && variables_restantes[j] == 1
+							variables_restantes[j] = 0
 						end
-						sous_ensembles_restants[i] = 0
 					end
 				end
+				sous_ensembles_restants[i] = 0
 			end
 		end
 	end
@@ -85,13 +78,47 @@ function est_admissible(x,matrix,i)::Bool
     return true
 end
 
-function kp_exchange01_simple(cost, matrix, x0, z)
+function utilities(cost,liaisons_contraintes,liaisons_variables,variables_restantes,sous_ensembles_restants)
+	evaluation = zeros(Float64,length(cost))
+
+	for i in 1:length(cost)
+		somme::Int64 = 0
+		for j in 1:length(liaisons_variables[i])
+				somme = somme + sous_ensembles_restants[liaisons_variables[i][j]]
+		end
+		if somme != 0
+			evaluation[i] = cost[i] / somme
+		end
+	end
+	evaluation = evaluation[variables_restantes .== 1] #on ne prend plus en compte que les variables restantes
+	indices = findall(variables_restantes .== 1)
+
+	return evaluation, indices
+end
+
+#construction gloutonne d'une solution
+
+
+#println(greedy_randomized_construction(C,A,0.1))
+
+# AMELIORATION PAR SIMPLE DESCENTE (VOISINAGES : 01-EXCHANGE, 11-EXCHANGE, 21-EXCHANGE)
+
+function est_admissible(x,liaisons_contraintes,liaisons_variables,i)::Bool
+    for compteur in 1:length(liaisons_variables[i])
+        if sum(x[liaisons_contraintes[liaisons_variables[i][compteur]]]) > 1
+        	return false
+    	end
+	end
+    return true
+end
+
+function kp_exchange01_simple(cost, liaisons_contraintes,liaisons_variables, x0, z)
     x = copy(x0)
     max::Int64 = copy(z)
     for i in 1:length(x)
         if x0[i] == 0
             x[i] = 1
-            if est_admissible(x,matrix,i)
+            if est_admissible(x,liaisons_contraintes,liaisons_variables,i)
                 if z + cost[i] > max
                     max = z + cost[i]
                     x0 = copy(x)
@@ -104,7 +131,7 @@ function kp_exchange01_simple(cost, matrix, x0, z)
     return x0,max
 end
 
-function kp_exchange11_simple(cost, matrix, x0, z)
+function kp_exchange11_simple(cost, liaisons_contraintes,liaisons_variables, x0, z)
     x = copy(x0)
     max::Int64 = copy(z)
     for i in 1:length(x)
@@ -112,7 +139,7 @@ function kp_exchange11_simple(cost, matrix, x0, z)
             for j in 1:length(x)
                 if x0[j] == 1
                     x[i],x[j] = 1,0
-                    if est_admissible(x,matrix,i)
+                    if est_admissible(x,liaisons_contraintes,liaisons_variables,i)
                         if z + cost[i] - cost[j] > max
                             max = z + cost[i] - cost[j]
                             x0 = copy(x)
@@ -128,7 +155,7 @@ function kp_exchange11_simple(cost, matrix, x0, z)
 end
 
 
-function kp_exchange21_simple(cost, matrix, x0, z)
+function kp_exchange21_simple(cost, liaisons_contraintes,liaisons_variables, x0, z)
     x = copy(x0)
     max::Int64 = copy(z)
     for i in 1:length(x)
@@ -138,7 +165,7 @@ function kp_exchange21_simple(cost, matrix, x0, z)
 					for k in (j+1):(length(x)-1)
 						if x0[k] == 1 && k != j
 							x[i], x[j], x[k] = 1,0,0
-							if est_admissible(x,matrix,i)
+							if est_admissible(x,liaisons_contraintes,liaisons_variables,i)
 								if z + cost[i] - cost[j] - cost[k] > max
 									max = z + cost[i] - cost[j] - cost[k]
 									x0 = copy(x)
@@ -155,22 +182,22 @@ function kp_exchange21_simple(cost, matrix, x0, z)
     return x0,max
 end
 
-function simple_descent(cost,matrix,x0,zInit)
-	x,z = kp_exchange21_simple(cost, matrix, x0,zInit)
-	x,z = kp_exchange11_simple(cost, matrix, x, z)
-	x,z = kp_exchange01_simple(cost, matrix, x, z)
+function simple_descent(cost,liaisons_contraintes,liaisons_variables,x0,zInit)
+	x,z = kp_exchange21_simple(cost, liaisons_contraintes,liaisons_variables, x0,zInit)
+	x,z = kp_exchange11_simple(cost, liaisons_contraintes,liaisons_variables, x, z)
+	x,z = kp_exchange01_simple(cost, liaisons_contraintes,liaisons_variables, x, z)
 	return x,z
 end
 
 # AMELIORATION PAR PLUS PROFONDE DESCENTE (VOISINAGES : 01-EXCHANGE, 11-EXCHANGE, 21-EXCHANGE)
 
-function kp_exchange01_profond(cost, matrix, x0, z)
+function kp_exchange01_profond(cost, liaisons_contraintes,liaisons_variables, x0, z)
     x = copy(x0)
     max::Int64 = copy(z)
     for i in 1:length(x)
         if x0[i] == 0
             x[i] = 1
-            if est_admissible(x,matrix,i)
+            if est_admissible(x,liaisons_contraintes,liaisons_variables,i)
                 if z + cost[i] > max
                     max = z + cost[i]
                     x0 = copy(x)
@@ -182,7 +209,7 @@ function kp_exchange01_profond(cost, matrix, x0, z)
     return x0,max
 end
 
-function kp_exchange11_profond(cost, matrix, x0, z)
+function kp_exchange11_profond(cost, liaisons_contraintes,liaisons_variables, x0, z)
     x = copy(x0)
     max::Int64 = copy(z)
     for i in 1:length(x)
@@ -190,7 +217,7 @@ function kp_exchange11_profond(cost, matrix, x0, z)
             for j in 1:length(x)
                 if x0[j] == 1
                     x[i],x[j] = 1,0
-                    if est_admissible(x,matrix,i)
+                    if est_admissible(x,liaisons_contraintes,liaisons_variables,i)
                         if z + cost[i] - cost[j] > max
                             max = z + cost[i] - cost[j]
                             x0 = copy(x)
@@ -204,7 +231,7 @@ function kp_exchange11_profond(cost, matrix, x0, z)
     return x0,max
 end
 
-function kp_exchange21_profond(cost, matrix, x0, z)
+function kp_exchange21_profond(cost, liaisons_contraintes,liaisons_variables, x0, z)
     x = copy(x0)
     max::Int64 = copy(z)
     for i in 1:length(x)
@@ -214,7 +241,7 @@ function kp_exchange21_profond(cost, matrix, x0, z)
 					for k in (j+1):(length(x)-1)
 						if x0[k] == 1 && k != j
 							x[i], x[j], x[k] = 1,0,0
-							if est_admissible(x,matrix,i)
+							if est_admissible(x,liaisons_contraintes,liaisons_variables,i)
 								if z + cost[i] - cost[j] - cost[k] > max
 									max = z + cost[i] - cost[j] - cost[k]
 									x0 = copy(x)
@@ -230,9 +257,9 @@ function kp_exchange21_profond(cost, matrix, x0, z)
     return x0,max
 end
 
-function deepest_descent(cost,matrix,x0,zInit)
-	x,z = kp_exchange21_profond(cost, matrix, x0, zInit)
-	x,z = kp_exchange11_profond(cost, matrix, x, z)
-	x,z = kp_exchange01_profond(cost, matrix, x, z)
+function deepest_descent(cost,liaisons_contraintes,liaisons_variables,x0,zInit)
+	x,z = kp_exchange21_profond(cost, liaisons_contraintes,liaisons_variables, x0, zInit)
+	x,z = kp_exchange11_profond(cost, liaisons_contraintes,liaisons_variables, x, z)
+	x,z = kp_exchange01_profond(cost, liaisons_contraintes,liaisons_variables, x, z)
 	return x,z
 end
