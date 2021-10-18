@@ -1,7 +1,7 @@
 include("codeDM2.jl")
 include("grasp.jl")
 
-function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_elite,target)
+function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_elite)
 	ensemble_z_max = Vector{Int64}(undef, nb_iter)
 	pool_elite = Dict()
 	sizehint!(pool_elite, max_elite)
@@ -23,11 +23,7 @@ function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_e
 				x_t = dot(C, x) > dot(C, elite) ? x : elite
 				x_s = dot(C, x) < dot(C, elite) ? x : elite
 				x_p, z_p = path_relinking(C, liaisons_contraintes, liaisons_variables, x_s, x_t)
-				if z_p >= target && check == false
-					t2=time()
-					t = t2 - t1
-					check = true
-				end
+
 				if length(pool_elite) < max_elite
 					pool_elite[x_p] = z_p
 				else
@@ -48,7 +44,7 @@ function grasppr(C, liaisons_contraintes, liaisons_variables, α, nb_iter, max_e
 
 		ensemble_z_max[i] = find_max_key(pool_elite)[2]
 	end
-	return find_max_key(pool_elite), ensemble_z_max,t
+	return find_max_key(pool_elite), dot(C,find_max_key(pool_elite)[1])
 end
 
 function path_relinking(cost, liaisons_contraintes, liaisons_variables, x_s, x_t)
@@ -101,20 +97,22 @@ function path_relinking(cost, liaisons_contraintes, liaisons_variables, x_s, x_t
 	return x_max, z_max
 end
 
-function path_relinking_random(cost, liaisons_contraintes, liaisons_variables, x_s, x_t, i_max)
+function path_relinking_random(cost, liaisons_contraintes, liaisons_variables, x_s, x_t)
 	symdiff = xor.(x_s, x_t)
 	findall_symdiff = findall(x -> x == 1, symdiff) # indices des éléments qui ne sont pas dans l'intersection
 	z_max = max(dot(cost, x_s), dot(cost, x_t))
 	z_ini = z_max
 	x_max = dot(x_s, cost) > dot(x_t, cost) ? x_s : x_t
 	x = copy(x_s)
-	while length(findall_symdiff) > 0#  ?
+	while length(findall_symdiff) > 0
 		indice_flip = rand(1:length(findall_symdiff))
 		x[findall_symdiff[indice_flip]] = x[findall_symdiff[indice_flip]] == 0 ? 1 : 0
-		if est_admissible(x, liaisons_contraintes, liaisons_variables, findall_symdiff[indice_flip])
+
 			z = dot(cost, x)
 			if z > z_max # solution "prometteuse" => autre critère ? z > 0.9 * z_max etc
-				x, z = deepest_descent(cost, liaisons_contraintes, liaisons_variables, x, z)
+				if est_admissible(x, liaisons_contraintes, liaisons_variables, findall_symdiff[indice_flip])
+					x, z = deepest_descent(cost, liaisons_contraintes, liaisons_variables, x, z)
+				end
 			end
 			symdiff = xor.(x, x_t)
 			findall_symdiff = findall(x -> x == 1, symdiff)
@@ -122,9 +120,6 @@ function path_relinking_random(cost, liaisons_contraintes, liaisons_variables, x
 				z_max = z
 				x_max = copy(x)
 			end
-		else
-			x[findall_symdiff[indice_flip]] = x[findall_symdiff[indice_flip]] == 0 ? 1 : 0
-		end
 	end
 	return x_max, z_max
 end

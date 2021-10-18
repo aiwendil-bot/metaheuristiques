@@ -177,10 +177,12 @@ end
 using PyPlot
 
 function simulation()
-    allfinstance      =  ["../../../Data/pb_100rnd0100.dat"]
+    #allfinstance      =  ["../../../Data/pb_100rnd0100.dat","../../../Data/pb_100rnd0300.dat","../../../Data/pb_100rnd1000.dat","../../../Data/pb_200rnd0500.dat",
+    #"../../../Data/pb_200rnd0700.dat","../../../Data/pb_200rnd1300.dat","../../../Data/pb_500rnd0500.dat","../../../Data/pb_500rnd1100.dat","../../../Data/pb_1000rnd0200.dat","../../../Data/pb_1000rnd0100.dat","../../../Data/pb_500rnd0700.dat"]
+    allfinstance = ["../../../Data/pb_500rnd1100.dat"]
     nbInstances       =  length(allfinstance)
-    nbRunGrasp        =  30   # nombre de fois que la resolution GRASP est repetee
-    nbIterationGrasp  =  200  # nombre d'iteration que compte une resolution GRASP
+    nbRunGrasp        =  10   # nombre de fois que la resolution GRASP est repetee
+    nbIterationGrasp  =  100  # nombre d'iteration que compte une resolution GRASP
     nbDivisionRun     =  10   # nombre de division que compte une resolution GRASP
 
     zinit = zeros(Int64, nbIterationGrasp) # zero
@@ -255,10 +257,10 @@ function simulation()
 end
 
 function simulation_Reactive()
-    allfinstance      =  ["../../../Data/pb_100rnd0100.dat"]
+    allfinstance      =  ["../../../Data/pb_500rnd0700.dat"]
     nbInstances       =  length(allfinstance)
-    nbRunGrasp        =  30   # nombre de fois que la resolution GRASP est repetee
-    nbIterationGrasp  =  200  # nombre d'iteration que compte une resolution GRASP
+    nbRunGrasp        =  10   # nombre de fois que la resolution GRASP est repetee
+    nbIterationGrasp  =  100  # nombre d'iteration que compte une resolution GRASP
     nbDivisionRun     =  10   # nombre de division que compte une resolution GRASP
 
     zinit = zeros(Int64, nbIterationGrasp) # zero
@@ -335,10 +337,10 @@ function simulation_Reactive()
 end
 
 function simulation_PR()
-    allfinstance      =  ["../../../Data/pb_100rnd0100.dat"]
+    allfinstance      =  ["../../../Data/pb_500rnd0700.dat"]
     nbInstances       =  length(allfinstance)
-    nbRunGrasp        =  30   # nombre de fois que la resolution GRASP est repetee
-    nbIterationGrasp  =  200  # nombre d'iteration que compte une resolution GRASP
+    nbRunGrasp        =  10   # nombre de fois que la resolution GRASP est repetee
+    nbIterationGrasp  =  100  # nombre d'iteration que compte une resolution GRASP
     nbDivisionRun     =  10   # nombre de division que compte une resolution GRASP
 
     zinit = zeros(Int64, nbIterationGrasp) # zero
@@ -380,7 +382,7 @@ function simulation_PR()
             # une instance sera resolue nbrungrasp fois
 
             start = time() # demarre le compteur de temps
-            alpha = 0.75
+            alpha = 0.7
             max_elite = 5
 
             zinit, zls, zbest = graspSPP_PR(cost, liaisons_contraintes, liaisons_variables, alpha, nbIterationGrasp,max_elite)
