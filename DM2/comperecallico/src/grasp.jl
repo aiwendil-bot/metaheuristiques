@@ -1,11 +1,11 @@
-function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter,target=0)
+function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
 	ensemble_z_max = Vector{Int64}(undef, nb_iter)
 	compteur::Int64 = 0
 	z_max::Int64 = 0
 	x = zeros(Int,length(C))
 	t1::Float64,t2::Float64,t::Float64,check::Bool = 0.0,0.0,0.0,false
 	t1=time()
-	while compteur < nb_iter # time() - t1 < tlimit
+	while compteur < nb_iter 
 
 		x, z = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
 		x_amelio, z_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,x,z)
@@ -24,7 +24,6 @@ function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter,target=0)
 	return x,z_max,ensemble_z_max,t
 end
 function grasp_v2(C,liaisons_contraintes,liaisons_variables,α)
-	compteur::Int64 = 0
 	x_cons,z_cons = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
 	x_amelio,z_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,x_cons,z_cons)
 	return x_cons,z_cons,x_amelio,z_amelio
@@ -41,12 +40,10 @@ function greedy_randomized_construction(cost, liaisons_contraintes,liaisons_vari
 	while sum(variables_restantes) > 0 #tant qu'il reste des variables non utilisées
 		evaluations = utilities(cost,liaisons_contraintes,liaisons_variables,variables_restantes,sous_ensembles_restants)
 		limit::Float64 = minimum(evaluations[1]) + α*(maximum(evaluations[1])-minimum(evaluations[1]))
-		rcl = findall(evaluations[1] .>= limit-0.000001)
+		rcl = findall(evaluations[1] .>= limit-0.000001) #évite les arrondis
 
 		rnd = rand(rcl)
-
 		indice_choisi = (evaluations[2])[rnd]
-
 		x_0[indice_choisi] = 1
 		variables_restantes[indice_choisi] = 0
 

@@ -57,16 +57,14 @@ function path_relinking(cost, liaisons_contraintes, liaisons_variables, x_s, x_t
 	z_s = dot(cost, x_s)
 	i = 1
 	while length(findall_symdiff) > 0
-
 		valeurs_flips = Dict{Int64,Int64}()
 		sizehint!(valeurs_flips, length(findall_symdiff))
-		# indice_flip = rand(1:length(findall_symdiff)) # Passer de random à une évaluation
 		for i in 1:length(findall_symdiff)
 			x[findall_symdiff[i]] = x[findall_symdiff[i]] == 0 ? 1 : 0
 			z = x[findall_symdiff[i]] == 1 ? z_s + cost[findall_symdiff[i]] : z_s - cost[findall_symdiff[i]]
 			valeurs_flips[findall_symdiff[i]] = z
 			x[findall_symdiff[i]] = x[findall_symdiff[i]] == 0 ? 1 : 0
-        		end
+        end
 		max_key, max_val = 0, 0
 		for i in keys(valeurs_flips)
 			if valeurs_flips[i] > max_val
@@ -74,15 +72,20 @@ function path_relinking(cost, liaisons_contraintes, liaisons_variables, x_s, x_t
 				max_val = valeurs_flips[i]
 			end
 		end
-		# if max_key != 0
-		x[max_key] = x[max_key] == 0 ? 1 : 0
-		# end
-		symdiff = xor.(x, x_t)
+		if max_key != 0
+			x[max_key] = x[max_key] == 0 ? 1 : 0
+			symdiff = xor.(x, x_t)
+
+		end
+		if max_val == 0
+			symdiff = zeros(length(x))
+		end
 		findall_symdiff = findall(x -> x == 1, symdiff)
 		admis::Bool = true
 		j = 1
 		while j <= length(cost) && admis == true
 			admis = est_admissible(cost, liaisons_contraintes, liaisons_variables, j)
+			j += 1
 		end
 		if admis == true
 			if max_val > z_init # solution "prometteuse" => autre critère ? z > 0.9 * z_max etc

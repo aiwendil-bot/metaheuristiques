@@ -4,6 +4,10 @@ using Distributed
 
 include("grasp.jl")
 
+
+#contient : fonction d'évaluation, simple descente, plus profonde descente
+
+
 function find_min_key(d)
 
 	minkey = undef

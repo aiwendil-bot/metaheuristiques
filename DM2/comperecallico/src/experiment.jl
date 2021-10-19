@@ -16,7 +16,7 @@ function graspSPP(cost,liaisons_contraintes,liaisons_variables, alpha, nbIterati
     zbetter = 0
 
     for i = 1:nbIterationGrasp
-        zconstruction[i], zamelioration[i] = grasp_v2(cost, liaisons_contraintes, liaisons_variables, alpha)[2], grasp_v2(cost, liaisons_contraintes, liaisons_variables, alpha)[4]# # livrable du DM2
+        un,zconstruction[i], trois, zamelioration[i] = grasp_v2(cost, liaisons_contraintes, liaisons_variables, alpha)# # livrable du DM2
         zbetter = max(zbetter, zamelioration[i])
         zbest[i] = zbetter
     end
@@ -179,9 +179,9 @@ using PyPlot
 function simulation()
     #allfinstance      =  ["../../../Data/pb_100rnd0100.dat","../../../Data/pb_100rnd0300.dat","../../../Data/pb_100rnd1000.dat","../../../Data/pb_200rnd0500.dat",
     #"../../../Data/pb_200rnd0700.dat","../../../Data/pb_200rnd1300.dat","../../../Data/pb_500rnd0500.dat","../../../Data/pb_500rnd1100.dat","../../../Data/pb_1000rnd0200.dat","../../../Data/pb_1000rnd0100.dat","../../../Data/pb_500rnd0700.dat"]
-    allfinstance = ["../../../Data/pb_500rnd1100.dat"]
+    allfinstance = ["../../../Data/pb_500rnd0500.dat"]
     nbInstances       =  length(allfinstance)
-    nbRunGrasp        =  10   # nombre de fois que la resolution GRASP est repetee
+    nbRunGrasp        =  5   # nombre de fois que la resolution GRASP est repetee
     nbIterationGrasp  =  100  # nombre d'iteration que compte une resolution GRASP
     nbDivisionRun     =  10   # nombre de division que compte une resolution GRASP
 
@@ -224,7 +224,7 @@ function simulation()
             # une instance sera resolue nbrungrasp fois
 
             start = time() # demarre le compteur de temps
-            alpha = 0.75
+            alpha = 0.5
 
             zinit, zls, zbest = graspSPP(cost, liaisons_contraintes, liaisons_variables, alpha, nbIterationGrasp)
             tutilise = time() - start # arrete et releve le compteur de temps
@@ -257,10 +257,10 @@ function simulation()
 end
 
 function simulation_Reactive()
-    allfinstance      =  ["../../../Data/pb_500rnd0700.dat"]
+    allfinstance      =  ["../../../Data/pb_500rnd0500.dat"]
     nbInstances       =  length(allfinstance)
-    nbRunGrasp        =  10   # nombre de fois que la resolution GRASP est repetee
-    nbIterationGrasp  =  100  # nombre d'iteration que compte une resolution GRASP
+    nbRunGrasp        =  5   # nombre de fois que la resolution GRASP est repetee
+    nbIterationGrasp  =  200  # nombre d'iteration que compte une resolution GRASP
     nbDivisionRun     =  10   # nombre de division que compte une resolution GRASP
 
     zinit = zeros(Int64, nbIterationGrasp) # zero
@@ -302,9 +302,9 @@ function simulation_Reactive()
             # une instance sera resolue nbrungrasp fois
 
             start = time() # demarre le compteur de temps
-            alpha = 0.75
+            alpha = 0.7
             vector_α = [0.2,0.5,0.7,0.9]
-            N_α = 20
+            N_α = 5
 
             zinit, zls, zbest = graspSPP_Reactive(cost,liaisons_contraintes,liaisons_variables, vector_α, nbIterationGrasp,N_α)
             tutilise = time() - start # arrete et releve le compteur de temps
@@ -337,9 +337,9 @@ function simulation_Reactive()
 end
 
 function simulation_PR()
-    allfinstance      =  ["../../../Data/pb_500rnd0700.dat"]
+    allfinstance      =  ["../../../Data/pb_500rnd0500.dat"]
     nbInstances       =  length(allfinstance)
-    nbRunGrasp        =  10   # nombre de fois que la resolution GRASP est repetee
+    nbRunGrasp        =  5   # nombre de fois que la resolution GRASP est repetee
     nbIterationGrasp  =  100  # nombre d'iteration que compte une resolution GRASP
     nbDivisionRun     =  10   # nombre de division que compte une resolution GRASP
 
