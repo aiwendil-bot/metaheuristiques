@@ -239,24 +239,25 @@ function mutation( carte , ind )
 
     index_true = Vector{Tuple{Int64,Int64}}(undef,0)
     fitness , realisable, visite = evaluerIndividu(carte, ind)
-    for i in 1:size(visite, 1)
-        for j in 1:size(visite,2)
-            if visite[i,j]
-                push!(index_true, (i,j))
+    if !realisable
+        for i in 1:size(visite, 1)
+            for j in 1:size(visite,2)
+                if visite[i,j]
+                    push!(index_true, (i,j))
+                end
             end
         end
-    end
-    sommes = zeros(length(index_true))
-    for i in 1:length(index_true)
-        sommes[i] = index_true[i][1] + index_true[i][2]
-    end
-    
-    max = argmax(sommes)
-    i,j = index_true[max] #couple coordonnées
+        sommes = zeros(length(index_true))
+        for i in 1:length(index_true)
+            sommes[i] = index_true[i][1] + index_true[i][2]
+        end
 
-    r = rand(1:3)
-    ind[i,j] = (ind[i,j] + r) % 4
+        max = argmax(sommes)
+        i,j = index_true[max] #couple coordonnées
 
+        r = rand(1:3)
+        ind[i,j] = (ind[i,j] + r) % 4
+    end
     return ind
 end
 
