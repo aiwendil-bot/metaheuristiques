@@ -175,24 +175,24 @@ function evaluerIndividu(carte,ind)
 end
 
 # ----------------------------------------------------------------------------------------------------
-# Selection d'un parent dans la population DONE
+# Selection d'un parent dans la population
 function selectionParent(pop)
 
     pop_calculs = copy(pop)
     somme_fitness = sum(indiv[2] for indiv in pop_calculs)
+    vecteur_probas = Vector{Float64}(undef,length(pop_calculs))
     #normalisation
-    for indivs in pop_calculs
-        indivs[2] /= somme_fitness
+    for i in 1:length(pop_calculs)
+        vecteur_probas[i] = pop_calculs[i][2] / somme_fitness
     end
      #normalisation cumulée
     for i in 2:length(pop_calculs)
-        indivs[i][2] += indivs[i-1][2]
+        vecteur_probas[i] += vecteur_probas[i-1]
     end
 
     proba = rand()
-    fitness_cumulees = [indivs[2] for indivs in pop_calculs]
 
-    ind1, fitness1, realisable1 = pop[findfirst(x -> x > proba, fitness_cumulees)]
+    ind1, fitness1, realisable1 = pop[findfirst(x -> x > proba, vecteur_probas)]
     chosen_one = copy(ind1)
 
     return chosen_one
@@ -208,25 +208,25 @@ function crossover(p1,p2)
 
     for i in (rand_ligne + 1):10
         for j in 1:rand_colonne
-            c1[1][i,j] = p2[1][i,j]
+            c1[i,j] = p2[i,j]
         end
     end
 
     for i in 1:rand_ligne
         for j in (rand_colonne + 1):10
-            c1[1][i,j] = p2[1][i,j]
+            c1[i,j] = p2[i,j]
         end
     end
 
     for i in (rand_ligne + 1):10
         for j in 1:rand_colonne
-            c2[1][i,j] = p1[1][i,j]
+            c2[i,j] = p1[i,j]
         end
     end
 
     for i in 1:rand_ligne
         for j in (rand_colonne + 1):10
-            c2[1][i,j] = p1[1][i,j]
+            c2[i,j] = p1[i,j]
         end
     end
 
@@ -266,7 +266,22 @@ end
 # Selectionne un individu survivant entre deux individus
 function survivantEnfant( carte, e , em )
 
+    fitness, realisable, visite = evaluerIndividu(carte, e)
+    fitness2, realisable2, visite2 = evaluerIndividu(carte, em)
 
+    if realisable
+        if realisable2
+            return fitness <= fitness2 ? e : em
+        else
+            return e
+        end
+    else
+        if realisable2
+            return em
+        else
+            return fitness >= fitness2 ? e : em
+        end
+    end
 
     return e
 end
@@ -307,7 +322,7 @@ function IdentifieMeilleur( pop , popSize )
         if (realisable) && (fitness < minFitness)
             iElite1 = i
             minFitness = fitness
-            existe = trueevaluerI
+            existe = true
         end
     end
     if existe
