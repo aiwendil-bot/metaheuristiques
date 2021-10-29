@@ -175,7 +175,8 @@ function evaluerIndividu(carte,ind)
 end
 
 # ----------------------------------------------------------------------------------------------------
-# Selection d'un parent dans la population
+# Selection d'un parent dans la population : sélection aléatoire
+
 function selectionParent(pop)
 
     pop_calculs = copy(pop)
@@ -199,7 +200,7 @@ function selectionParent(pop)
  end
 
 # ----------------------------------------------------------------------------------------------------
-# crossover entre deux individus : two points
+# crossover entre deux individus : two points sur la matrice ind (selon ligne et selon colonne)
 function crossover(p1,p2)
 
     c1, c2 = copy(p1), copy(p2)
@@ -235,6 +236,8 @@ end
 
 # ----------------------------------------------------------------------------------------------------
 # mutation d'un individu
+# on détecte la "tête du chemin" et on modifie la valeur de ind de cette case
+#si le chemin est réalisable on ne mute pas
 function mutation( carte , ind )
 
     index_true = Vector{Tuple{Int64,Int64}}(undef,0)
@@ -264,6 +267,11 @@ end
 
 # ----------------------------------------------------------------------------------------------------
 # Selectionne un individu survivant entre deux individus
+
+#si un est réalisable mais pas l'autre, on le prend
+#si les deux sont réalisables on prend la plus petite valeur de fitness
+#si les deux ne le sont pas, on prend la meilleure valeur de fitness
+
 function survivantEnfant( carte, e , em )
 
     fitness, realisable, visite = evaluerIndividu(carte, e)
@@ -282,8 +290,6 @@ function survivantEnfant( carte, e , em )
             return fitness >= fitness2 ? e : em
         end
     end
-
-    return e
 end
 
 # ----------------------------------------------------------------------------------------------------
