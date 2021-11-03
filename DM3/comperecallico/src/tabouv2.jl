@@ -1,6 +1,5 @@
 include("codeDM3.jl")
 
-#tabou avec voisinage 2-1 echange, liste candidate et critère aspiration
 
 function tabouv2(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timelim::Int,taille_tabou::Int,taille_echantillonage::Int)
 	nb_variables = size(cost,1)
@@ -29,7 +28,6 @@ function tabouv2(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timel
 				i += 1
 			end
 		end
-		println(echantillonage)
 		max_xechantillon, max_zechantillon, max_mov = zeros(length(cost)), 0, (0,0,0)
 		for i in 1:taille_echantillonage
 			current[echantillonage[i][1]],current[echantillonage[i][2]],current[echantillonage[i][3]] = 1,0,0

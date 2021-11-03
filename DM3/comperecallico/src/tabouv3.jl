@@ -22,6 +22,7 @@ function tabouv3(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timel
 			z_max = z_current
 			xmax = sol
 		end
+		#màj tabou
 		forbidden_sols[n] = sol
 		if n < taille_tabou
 			n += 1
