@@ -16,8 +16,8 @@ function tabouv3(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timel
 
 	while (time() < temps + timelim)
 
-		sol, z_current = deepest_descent_tabou(cost,liaisons_contraintes,liaisons_variables,sol,zsol,forbidden_sols)
 
+		sol, z_current = deepest_descent_tabou(cost,liaisons_contraintes,liaisons_variables,sol,zsol,forbidden_sols)
 		if z_current > zmax
 			z_max = z_current
 			xmax = sol
