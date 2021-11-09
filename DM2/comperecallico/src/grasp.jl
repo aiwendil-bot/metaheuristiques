@@ -1,27 +1,19 @@
-function grasp(C,liaisons_contraintes,liaisons_variables,α,nb_iter)
-	ensemble_z_max = Vector{Int64}(undef, nb_iter)
+function grasp(C,liaisons_contraintes,liaisons_variables,α,timelim)
+
 	compteur::Int64 = 0
 	z_max::Int64 = 0
 	x = zeros(Int,length(C))
-	t1::Float64,t2::Float64,t::Float64,check::Bool = 0.0,0.0,0.0,false
-	t1=time()
-	while compteur < nb_iter 
+	temps = time()
+	while (time() < temps + timelim)
 
 		x, z = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)
-		x_amelio, z_amelio = simple_descent(C,liaisons_contraintes,liaisons_variables,x,z)
-		if z_amelio > target && check == false
-			t2=time()
-			t = t2-t1
-			check = true
-		end
+		x_amelio, z_amelio = deepest_descent(C,liaisons_contraintes,liaisons_variables,x,z)
 		if z_amelio > z_max
 			z_max = z_amelio
 			x = x_amelio
 		end
-	compteur += 1
-	ensemble_z_max[compteur] = z_max
 	end
-	return x,z_max,ensemble_z_max,t
+	return x,z_max
 end
 function grasp_v2(C,liaisons_contraintes,liaisons_variables,α)
 	x_cons,z_cons = greedy_randomized_construction(C,liaisons_contraintes,liaisons_variables,α)

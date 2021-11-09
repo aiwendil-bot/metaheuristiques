@@ -49,5 +49,5 @@ function tabouv2(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timel
 			end
 		end
 	end
-	return max_zechantillon, max_xechantillon
+	return max_xechantillon, max_zechantillon
 end

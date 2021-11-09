@@ -11,7 +11,6 @@ function tabou(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timelim
 	forbidden_movs = zeros(Int,nb_variables,nb_variables)
 
 	temps = time()
-
 	while (time() < temps + timelim)
 		current_sol = 0
 		ligne_matrice_tabou= -1
@@ -47,6 +46,7 @@ function tabou(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timelim
 			xmax = copy(xamelio)
 			zmax = zamelio
 		end
+		println(forbidden_movs)
 	end
 	return xmax,zmax
 end

@@ -13,17 +13,17 @@ function tabouv3(cost::Vector{Int},liaisons_contraintes,liaisons_variables,timel
 		forbidden_sols[i] = zeros(length(cost))
 	end
 	temps = time()
-
 	while (time() < temps + timelim)
 
-
 		sol, z_current = deepest_descent_tabou(cost,liaisons_contraintes,liaisons_variables,sol,zsol,forbidden_sols)
+		println("sol, z : ", sol, z_current)
 		if z_current > zmax
 			z_max = z_current
 			xmax = sol
 		end
 		#màj tabou
 		forbidden_sols[n] = sol
+		println(forbidden_sols)
 		if n < taille_tabou
 			n += 1
 		else
