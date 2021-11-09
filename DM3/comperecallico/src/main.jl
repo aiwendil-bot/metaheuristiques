@@ -19,7 +19,6 @@ function main()
         C, A = loadSPP(string(target,"/",fnames[instance]))
         liaisons_contraintes = vect_contraintes(A)
         liaisons_variables = vect_variables(A)
-        println(greedy_randomized_construction(C, liaisons_contraintes,liaisons_variables, 0.1))
         zInit = 0 ; zBest = 0 ; t1 =0.0 ; t2 = 0.0
 
         #un, zInit, probamax, quatre = reactive_grasp(C, liaisons_contraintes, liaisons_variables, vector_α, nb_iter, 20)
